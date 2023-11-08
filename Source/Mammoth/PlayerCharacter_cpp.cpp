@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values
 APlayerCharacter_cpp::APlayerCharacter_cpp():
@@ -30,6 +31,10 @@ APlayerCharacter_cpp::APlayerCharacter_cpp():
 			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("Found SubSystem %s"), *OnlineSubsystem->GetSubsystemName().ToString()));
 		}
 	}
+
+	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
+	OverHeadWidget->SetupAttachment(RootComponent);
+
 }
 
 // Called when the game starts or when spawned
@@ -60,7 +65,7 @@ void APlayerCharacter_cpp::OpenLobby() {
 	UWorld* World = GetWorld();
 	if (World) {
 
-		World->ServerTravel("/Game/Levels/Hub_lvl?listen");
+		World->ServerTravel("/Game/Levels/Level_01?listen");
 			//E:/Documents/Unreal Projects/Mammoth/Mammoth_Proj/Content/StarterContent/Maps/Hub_lvl.umap
 	}
 
@@ -95,7 +100,7 @@ void APlayerCharacter_cpp::CreateGameSession()
 	}
 
 	OnlineSessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
-
+	
 	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
 	SessionSettings->bIsLANMatch = false;
 	SessionSettings->NumPublicConnections = 4;
@@ -141,7 +146,7 @@ void APlayerCharacter_cpp::OnCreateSessionComplete(FName SessionName, bool bWasS
 		UWorld* World = GetWorld();
 		if (World)
 		{
-			World->ServerTravel(FString("/Game/Levels/Hub_lvl?listen"));
+			World->ServerTravel("/Game/Levels/Level_01?listen");
 		}
 	}
 	else 
