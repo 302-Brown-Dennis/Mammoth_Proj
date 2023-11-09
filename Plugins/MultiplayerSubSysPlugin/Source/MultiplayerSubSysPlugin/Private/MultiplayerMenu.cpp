@@ -7,6 +7,11 @@
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 
+
+// Calls the MenuSetup blueprintableCallable function, saves path to hub/lobby, max num of public connections, match type
+// Gets player controller, displays menu set input mode to UI only!
+// Gets game instance checks if valid, then gets our multiplayer sub-system from game instance
+// If multiplayer sub-system was found bind callback funcs in this class to delegates in MultiplayerSessionSubsystem class
 void UMultiplayerMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeMatch, FString LobbyPath)
 {
 	PathToLobby = FString::Printf(TEXT("%s?listen"), *LobbyPath);
@@ -31,6 +36,12 @@ void UMultiplayerMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeMa
 			PlayerController->SetInputMode(InputModeData);
 			PlayerController->SetShowMouseCursor(true);
 		}
+		else {
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Failed!")));
+			}
+		}
 
 	}
 
@@ -42,7 +53,7 @@ void UMultiplayerMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeMa
 
 	if (MultiplayerSessionSubsystem)
 	{
-		// Bind callbacks
+		// Bind callback functions in ThisClass to delegates in MultiplayerSessionSubsystem class
 		MultiplayerSessionSubsystem->MultiplayerOnCreateSessionComplete.AddDynamic(this, &ThisClass::OnCreateSession);
 		MultiplayerSessionSubsystem->MultiplayerOnFindSessionComplete.AddUObject(this, &ThisClass::OnFindSessions);
 		MultiplayerSessionSubsystem->MultiplayerOnJoinSessionComplete.AddUObject(this, &ThisClass::OnJoinSession);
@@ -52,6 +63,8 @@ void UMultiplayerMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeMa
 
 }
 
+// Check if menu was initialized, binds HostButton and JoinButton functions to buttons dynamic delegate
+// NOTE: buttons dynamic deleget is encapsulated in button.h
 bool UMultiplayerMenu::Initialize()
 {
 	if (!Super::Initialize())
@@ -61,26 +74,42 @@ bool UMultiplayerMenu::Initialize()
 
 	if (HostButton)
 	{
-		// Bind call backs to buttons
+		// Bind HostButtonClicked function to buttons dynamic delegate
 		HostButton->OnClicked.AddDynamic(this, &ThisClass::HostButtonClicked);
 	}
 	if (JoinButton)
 	{
-		// Bind call backs to buttons
+		// // Bind JoinButtonClicked function to buttons dynamic delegate
 		JoinButton->OnClicked.AddDynamic(this, &ThisClass::JoinButtonClicked);
 	}
 
 	return true;
 }
 
-// Remove menu and give input back to all players
-void UMultiplayerMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
+// Bind menu widget host button to create session function
+void UMultiplayerMenu::HostButtonClicked()
 {
-	MenuTearDown();
-	// Use super for inherited functions
-	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
+	HostButton->SetIsEnabled(false);
+	if (MultiplayerSessionSubsystem)
+	{
+		// Create session params are harded coded could change later, add varibles in menu.h
+		MultiplayerSessionSubsystem->CreateSession(NumPublicConnections, MatchType);
+
+	}
 }
-// On Create Session call back function
+
+// Bind menu widget join button to find session function in MultiplayerSessionSubsystem.cpp
+void UMultiplayerMenu::JoinButtonClicked()
+{
+	JoinButton->SetIsEnabled(false);
+	if (MultiplayerSessionSubsystem)
+	{
+		MultiplayerSessionSubsystem->FindSessions(1000);
+	}
+}
+
+
+// On Create Session call back function server travel to lobby lvl, display debug text
 void UMultiplayerMenu::OnCreateSession(bool bWasSuccessful)
 {
 	if (bWasSuccessful)
@@ -106,7 +135,7 @@ void UMultiplayerMenu::OnCreateSession(bool bWasSuccessful)
 	}
 }
 
-// parse results, might have to change based on design
+// parse results, might have to change based on design i.e. server list?
 void UMultiplayerMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful)
 {
 
@@ -132,6 +161,7 @@ void UMultiplayerMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& 
 
 }
 
+// Join open session via ip address and travel client to session
 void UMultiplayerMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 {
 
@@ -160,33 +190,25 @@ void UMultiplayerMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 
 }
 
+// Currently unused
 void UMultiplayerMenu::OnDestroySession(bool bWasSuccessful)
 {
 }
 
+// Currently unused
 void UMultiplayerMenu::OnStartSession(bool bWasSuccessful)
 {
 }
 
-void UMultiplayerMenu::HostButtonClicked()
+
+// Remove menu viaMenuTear and give input back to all players
+void UMultiplayerMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 {
-	HostButton->SetIsEnabled(false);
-	if (MultiplayerSessionSubsystem) 
-	{
-		// Create session params are harded coded could change later, add varibles in menu.h
-		MultiplayerSessionSubsystem->CreateSession(NumPublicConnections, MatchType);
-		
-	}
+	MenuTearDown();
+	// Use super for inherited functions
+	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
 }
 
-void UMultiplayerMenu::JoinButtonClicked()
-{
-	JoinButton->SetIsEnabled(false);
-	if (MultiplayerSessionSubsystem)
-	{
-		MultiplayerSessionSubsystem->FindSessions(1000);
-	}
-}
 // Give back player control after menu closes
 void UMultiplayerMenu::MenuTearDown()
 {

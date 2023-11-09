@@ -4,6 +4,16 @@
 #include "LobbyGameMode.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
+#include "Mammoth/PlayerCharacter_cpp.h"
+
+void ALobbyGameMode::TravelToNewLevel()
+{
+}
+
+ALobbyGameMode::ALobbyGameMode()
+{
+	//OnAllPlayersReady.AddDynamic(this, &ALobbyGameMode::TravelToNewLevel);
+}
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -26,8 +36,13 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("%s joined!"), *PlayerName));
 
 		}
-
-
+		/*
+		APlayerCharacter_cpp* PlayerController = Cast<APlayerCharacter_cpp>(NewPlayer);
+		if (PlayerController)
+		{
+			PlayerController->OnPlayerReady.AddDynamic(this, &ALobbyGameMode::CheckAllPlayerInput);
+		}
+		*/
 	}
 
 
@@ -40,3 +55,40 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	//}
 
 }
+
+void ALobbyGameMode::AllPlayersAcceptedTravel()
+{
+	/*
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerCharacter_cpp* PlayerController = Cast<APlayerCharacter_cpp>(*It);
+		if (PlayerController)
+		{
+			if (!PlayerController->OnAccpetLevel())
+			{
+				return false;
+			}
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString(TEXT("Player has accepted")));
+			}
+		}
+	}
+	return true;
+	*/
+}
+
+void ALobbyGameMode::CheckAllPlayerInput()
+{
+
+	NumPlayersReady++;
+
+	if (NumPlayersReady == 4)
+	{
+
+
+	}
+
+}
+
+

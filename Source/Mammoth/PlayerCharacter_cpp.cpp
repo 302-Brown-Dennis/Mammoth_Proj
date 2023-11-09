@@ -12,6 +12,7 @@ APlayerCharacter_cpp::APlayerCharacter_cpp():
 	CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &APlayerCharacter_cpp::OnCreateSessionComplete)),
 	FindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &APlayerCharacter_cpp::OnFindSessionsComplete)),
 	JoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &APlayerCharacter_cpp::OnJoinSessionComplete))
+	//AcceptDelegate(FPlayerAcceptanceDelegate::CreateUObject(this, &ThisClass::OnAccpetLevel))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -41,7 +42,16 @@ APlayerCharacter_cpp::APlayerCharacter_cpp():
 void APlayerCharacter_cpp::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//	StartSessionCompleteDelegate(FOnStartSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnStartSessionComplete))
+
 	
+	
+	PlayerAcceptanceDelegate.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
+	//AcceptDelegate.BindUFunction(this, FName(On))
+
+	//OnPlayerAccepted.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
+
 	//UE_LOG(LogTemp, Warning, TEXT("Character begin play!"));
 }
 
@@ -60,6 +70,7 @@ void APlayerCharacter_cpp::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 }
 
+// Open a Lobby by server travelling to the lobby/hub level
 void APlayerCharacter_cpp::OpenLobby() {
 
 	UWorld* World = GetWorld();
@@ -71,11 +82,13 @@ void APlayerCharacter_cpp::OpenLobby() {
 
 }
 
+// Blueprint callable function for opening a level
 void APlayerCharacter_cpp::CallOpenLevel(const FString& Address) {
 
 	UGameplayStatics::OpenLevel(this, *Address);
 }
 
+// Blueprint callable function travelling a client to a session
 void APlayerCharacter_cpp::CallClientTravel(const FString& Address) {
 
 	APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
@@ -85,6 +98,11 @@ void APlayerCharacter_cpp::CallClientTravel(const FString& Address) {
 		}
 }
 
+
+// Check if OnlineSessionInterface is vaild
+// Check if a session already exsits, if so destroy session
+// Store OnlineSessionInterface for later removal
+// Set Session Settings of our new session and create a session w/settings
 void APlayerCharacter_cpp::CreateGameSession()
 {
 	// Called on key press
@@ -114,6 +132,10 @@ void APlayerCharacter_cpp::CreateGameSession()
 	OnlineSessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings);
 }
 
+
+// Check if OnlineSessionInterface is vaild
+// Store OnlineSessionInterface for later removal
+// Search for session
 void APlayerCharacter_cpp::JoinGameSession()
 {
 	// Find a game session
@@ -134,6 +156,7 @@ void APlayerCharacter_cpp::JoinGameSession()
 	OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
 }
 
+// If session created successfully travel to hub/level, display debug messages
 void APlayerCharacter_cpp::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
 	if (bWasSuccessful)
@@ -158,6 +181,8 @@ void APlayerCharacter_cpp::OnCreateSessionComplete(FName SessionName, bool bWasS
 	}
 }
 
+// Loop through search results
+// Join Session with matching MatchType
 void APlayerCharacter_cpp::OnFindSessionsComplete(bool bWasSuccessful)
 {
 	if (!OnlineSessionInterface.IsValid())
@@ -192,6 +217,7 @@ void APlayerCharacter_cpp::OnFindSessionsComplete(bool bWasSuccessful)
 	
 }
 
+// Travel Client to found session, Debug message for server address
 void APlayerCharacter_cpp::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
 	if (!OnlineSessionInterface.IsValid())
@@ -213,5 +239,13 @@ void APlayerCharacter_cpp::OnJoinSessionComplete(FName SessionName, EOnJoinSessi
 		}
 
 	}
+}
+
+void APlayerCharacter_cpp::OnAccpetLevel()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString(TEXT("Player wants to start game!")));
+
+	//PlayerAcceptanceDelegate.Broadcast();
+	//return true;
 }
 

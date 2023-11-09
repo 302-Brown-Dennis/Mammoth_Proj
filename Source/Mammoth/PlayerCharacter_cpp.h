@@ -8,6 +8,8 @@
 
 #include "PlayerCharacter_cpp.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerAcceptanceDelegate);
+
 UCLASS(Blueprintable, config=Game)
 class MAMMOTH_API APlayerCharacter_cpp : public ACharacter
 {
@@ -16,6 +18,8 @@ class MAMMOTH_API APlayerCharacter_cpp : public ACharacter
 public:
 	// Sets default values for this character's properties
 	APlayerCharacter_cpp();
+
+	//FPlayerAcceptanceDelegate OnPlayerReady;
 
 protected:
 	// Called when the game starts or when spawned
@@ -37,10 +41,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CallClientTravel(const FString& Address);
 
+	// My Blueprint callable func for accepting or starting a new mission
+	UFUNCTION(BlueprintCallable)
+	void OnAccpetLevel();
+
 // Online sub-system controls
 public:
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
+
+	FPlayerAcceptanceDelegate PlayerAcceptanceDelegate;
 
 // Protected controls for creating steam session
 protected:
@@ -54,12 +64,18 @@ protected:
 	void OnFindSessionsComplete(bool bWasSuccessful);
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
+	
+
 // Create delegate
 private:
 	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
 	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
+
+	// MY CODE
+	//UPROPERTY(BlueprintAssignable, Category = "Acceptance")
+	//FPlayerAcceptanceDelegate OnPlayerAccepted;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverHeadWidget;
