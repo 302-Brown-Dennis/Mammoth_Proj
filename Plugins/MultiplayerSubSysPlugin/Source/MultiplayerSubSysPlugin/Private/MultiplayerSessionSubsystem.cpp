@@ -111,6 +111,8 @@ void UMultiplayerSessionSubsystem::JoinSession(const FOnlineSessionSearchResult&
 
 }
 
+// Destory clients session disconnecting them
+// This WILL NOT destory other clients session
 void UMultiplayerSessionSubsystem::DestroySession()
 {
 
