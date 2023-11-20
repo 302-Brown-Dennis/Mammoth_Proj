@@ -5,14 +5,21 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 #include "Mammoth/PlayerCharacter_cpp.h"
-
-void ALobbyGameMode::TravelToNewLevel()
-{
-}
-
+#include "GameFramework/PlayerController.h"
 ALobbyGameMode::ALobbyGameMode()
 {
-	//OnAllPlayersReady.AddDynamic(this, &ALobbyGameMode::TravelToNewLevel);
+	AllPlayersReadyDelegate.AddDynamic(this, &ALobbyGameMode::CallServerTravel);
+}
+
+void ALobbyGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	PlayerInputStatus.Init(false, 4);
+
+	// Bind the input check function to player controllers
+	
+
 }
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
@@ -24,7 +31,7 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	if (CurrentGameState)
 	{
 		int32 NumberOfPlayers = CurrentGameState->PlayerArray.Num();
-		if(GEngine)
+		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT("Players in game: %d"), NumberOfPlayers));
 		}
@@ -33,62 +40,38 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 		if (PlayerState)
 		{
 			FString PlayerName = PlayerState->GetPlayerName();
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("%s joined!"), *PlayerName));
-
-		}
-		/*
-		APlayerCharacter_cpp* PlayerController = Cast<APlayerCharacter_cpp>(NewPlayer);
-		if (PlayerController)
-		{
-			PlayerController->OnPlayerReady.AddDynamic(this, &ALobbyGameMode::CheckAllPlayerInput);
-		}
-		*/
-	}
-
-
-	// If statement here to check if all players have accepted a mission start, then travel to mission level
-	//UWorld* World = GetWorld();
-	//if (World)
-	//{
-	//	bUseSeamlessTravel = true;
-	//	World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
-	//}
-
-}
-
-void ALobbyGameMode::AllPlayersAcceptedTravel()
-{
-	/*
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{
-		APlayerCharacter_cpp* PlayerController = Cast<APlayerCharacter_cpp>(*It);
-		if (PlayerController)
-		{
-			if (!PlayerController->OnAccpetLevel())
-			{
-				return false;
-			}
 			if (GEngine)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString(TEXT("Player has accepted")));
-			}
+				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("%s joined!"), *PlayerName));
+			}                                    
 		}
+
 	}
-	return true;
-	*/
 }
 
-void ALobbyGameMode::CheckAllPlayerInput()
+void ALobbyGameMode::CheckAllPlayersInput()
 {
-
 	NumPlayersReady++;
-
-	if (NumPlayersReady == 4)
+	if (GEngine)
 	{
-
-
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString(TEXT("Player has readied! successful broadcast!")));
 	}
-
+	// Check if all players are ready
+	if (NumPlayersReady == 1)
+	{
+		AllPlayersReadyDelegate.Broadcast();
+	}
 }
+
+void ALobbyGameMode::CallServerTravel()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
+	}
+}
+
+
 
 

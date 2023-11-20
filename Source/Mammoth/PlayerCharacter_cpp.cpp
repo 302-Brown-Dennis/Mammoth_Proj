@@ -38,6 +38,7 @@ APlayerCharacter_cpp::APlayerCharacter_cpp():
 	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
 	OverHeadWidget->SetupAttachment(RootComponent);
 
+
 }
 
 //Daniel M Added GetLifetimeReplicated
@@ -54,10 +55,10 @@ void APlayerCharacter_cpp::BeginPlay()
 	Super::BeginPlay();
 
 	//	StartSessionCompleteDelegate(FOnStartSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnStartSessionComplete))
-
+	//PlayerStartMissionDelegate.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
 	
 	
-	PlayerAcceptanceDelegate.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
+	//PlayerAcceptanceDelegate.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
 	//AcceptDelegate.BindUFunction(this, FName(On))
 
 	//OnPlayerAccepted.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
@@ -113,6 +114,12 @@ void APlayerCharacter_cpp::CallClientTravel(const FString& Address) {
 		{
 			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 		}
+}
+
+void APlayerCharacter_cpp::PlayerHasReadyUp()
+{
+	
+	PlayerReadyDelegate.Broadcast();
 }
 
 
@@ -258,13 +265,6 @@ void APlayerCharacter_cpp::OnJoinSessionComplete(FName SessionName, EOnJoinSessi
 	}
 }
 
-void APlayerCharacter_cpp::OnAccpetLevel()
-{
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString(TEXT("Player wants to start game!")));
-
-	//PlayerAcceptanceDelegate.Broadcast();
-	//return true;
-}
 
 //Player Health Rep Function
 void APlayerCharacter_cpp::OnRep_Health() {
