@@ -5,27 +5,20 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/OnlineSessionInterface.h"
-
 #include "PlayerCharacter_cpp.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerAcceptanceDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerReadyDelegate);
 
 UCLASS(Blueprintable, config=Game)
 class MAMMOTH_API APlayerCharacter_cpp : public ACharacter
 {
 	GENERATED_BODY()
 
-public:
+public:	
+
 	// Sets default values for this character's properties
 	APlayerCharacter_cpp();
 
-	//FPlayerAcceptanceDelegate OnPlayerReady;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -41,19 +34,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CallClientTravel(const FString& Address);
 
-	// My Blueprint callable func for accepting or starting a new mission
 	UFUNCTION(BlueprintCallable)
-	void OnAccpetLevel();
+	void PlayerHasReadyUp();
 
-// Online sub-system controls
-public:
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 
-	FPlayerAcceptanceDelegate PlayerAcceptanceDelegate;
+	FPlayerReadyDelegate PlayerReadyDelegate;
 
 // Protected controls for creating steam session
 protected:
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
 	UFUNCTION(BlueprintCallable)
 	void CreateGameSession();
 
@@ -64,8 +58,6 @@ protected:
 	void OnFindSessionsComplete(bool bWasSuccessful);
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
-	
-
 // Create delegate
 private:
 	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
@@ -73,10 +65,8 @@ private:
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
 
-	// MY CODE
-	//UPROPERTY(BlueprintAssignable, Category = "Acceptance")
-	//FPlayerAcceptanceDelegate OnPlayerAccepted;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverHeadWidget;
+
+	
 };
