@@ -21,6 +21,9 @@ public:
 
 	//FPlayerAcceptanceDelegate OnPlayerReady;
 
+	//Daniel M Added GetLifeTimeReplicated
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -79,4 +82,29 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverHeadWidget;
+
+
+	/*
+	* Player Health and Stamina
+	*/
+
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	float MaxHealth = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	float Health = 100.f;
+
+	UFUNCTION()
+	void OnRep_Health();
+
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	float MaxStamina = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	float Stamina = 100.f;
+
+	UFUNCTION()
+	void OnRep_Stamina();
+
+	class AMammothPlayerController* MammothPlayerController;
 };

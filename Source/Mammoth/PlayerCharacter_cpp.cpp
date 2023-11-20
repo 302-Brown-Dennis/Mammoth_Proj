@@ -6,6 +6,8 @@
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
 #include "Components/WidgetComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "Mammoth/PlayerController/MammothPlayerController.h"
 
 // Sets default values
 APlayerCharacter_cpp::APlayerCharacter_cpp():
@@ -38,6 +40,14 @@ APlayerCharacter_cpp::APlayerCharacter_cpp():
 
 }
 
+//Daniel M Added GetLifetimeReplicated
+void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerCharacter_cpp, Health);
+	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
+}
+
 // Called when the game starts or when spawned
 void APlayerCharacter_cpp::BeginPlay()
 {
@@ -53,6 +63,13 @@ void APlayerCharacter_cpp::BeginPlay()
 	//OnPlayerAccepted.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Character begin play!"));
+
+	//for player health and stamina
+	MammothPlayerController = Cast<AMammothPlayerController>(Controller);
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
+		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
+	}
 }
 
 // Called every frame
@@ -249,3 +266,12 @@ void APlayerCharacter_cpp::OnAccpetLevel()
 	//return true;
 }
 
+//Player Health Rep Function
+void APlayerCharacter_cpp::OnRep_Health() {
+
+}
+
+//Player Stamina Rep Function
+void APlayerCharacter_cpp::OnRep_Stamina() {
+
+}
