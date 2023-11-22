@@ -6,6 +6,7 @@
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
 #include "Components/WidgetComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 APlayerCharacter_cpp::APlayerCharacter_cpp():
@@ -36,6 +37,8 @@ APlayerCharacter_cpp::APlayerCharacter_cpp():
 	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
 	OverHeadWidget->SetupAttachment(RootComponent);
 
+	NetUpdateFrequency = 66.f;
+	MinNetUpdateFrequency = 33.f;
 
 }
 
