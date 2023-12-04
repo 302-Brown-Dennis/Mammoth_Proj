@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Mammoth/PlayerController/MammothPlayerController.h"
+#include "GameFramework/PlayerController.h"
 
 // Sets default values
 APlayerCharacter_cpp::APlayerCharacter_cpp():
@@ -79,6 +80,16 @@ void APlayerCharacter_cpp::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Character tick!"));
+
+	//Sprinting Functionality
+	if (isSprinting) {
+		Stamina -= StaminaDrainRate * DeltaTime;
+	}
+	else {
+		Stamina += StaminaRegenRate * DeltaTime;
+	}
+
+	Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
 }
 
 // Called to bind functionality to input
@@ -86,6 +97,9 @@ void APlayerCharacter_cpp::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	// Sprint functionality 
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter_cpp::StartSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter_cpp::StopSprint);
 }
 
 // Open a Lobby by server travelling to the lobby/hub level
@@ -116,11 +130,7 @@ void APlayerCharacter_cpp::CallClientTravel(const FString& Address) {
 		}
 }
 
-void APlayerCharacter_cpp::PlayerHasReadyUp()
-{
-	
-	PlayerReadyDelegate.Broadcast();
-}
+
 
 
 // Check if OnlineSessionInterface is vaild
@@ -274,4 +284,16 @@ void APlayerCharacter_cpp::OnRep_Health() {
 //Player Stamina Rep Function
 void APlayerCharacter_cpp::OnRep_Stamina() {
 
+}
+
+// Following Functions implemented for Stamina/Sprinting
+
+void APlayerCharacter_cpp::StartSprint() {
+	if (Stamina > 0.0f) {
+		isSprinting = true;
+	}
+}
+
+void APlayerCharacter_cpp::StopSprint() {
+	isSprinting = false;
 }

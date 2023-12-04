@@ -21,7 +21,7 @@ public:
 
 	//FPlayerAcceptanceDelegate OnPlayerReady;
 
-	//Daniel M Added GetLifeTimeReplicated
+	//Daniel M Added 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
@@ -44,9 +44,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CallClientTravel(const FString& Address);
 
-	// My Blueprint callable func for accepting or starting a new mission
-	UFUNCTION(BlueprintCallable)
-	void OnAccpetLevel();
 
 // Online sub-system controls
 public:
@@ -100,8 +97,19 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	float MaxStamina = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	UPROPERTY(ReplicatedUsing = OnRep_Stamina, VisibleAnywhere, Category = "Player Stats")
 	float Stamina = 100.f;
+
+	// More stuff for Stamina
+	UPROPERTY(EditAnywhere, Category = "Stamina")
+	float StaminaRegenRate = 10.f;
+
+	UPROPERTY(EditAnywhere, Category = "Stamina")
+	float StaminaDrainRate = 5.f;
+
+	bool isSprinting = false;
+	void StartSprint();
+	void StopSprint();
 
 	UFUNCTION()
 	void OnRep_Stamina();

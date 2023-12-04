@@ -38,6 +38,6 @@ void AMammothPlayerController::SetHUDStamina(float Stamina, float MaxStamina) {
 
 	if (mHUDValid) {
 		const float StaminaPercent = Stamina / MaxStamina;
-		MammothHUD->CharacterOverlay->HealthBar->SetPercent(StaminaPercent);
+		MammothHUD->CharacterOverlay->StaminaBar->SetPercent(StaminaPercent);
 	}
 }
