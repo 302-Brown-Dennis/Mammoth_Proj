@@ -81,29 +81,6 @@ void ALobbyGameMode::CallServerTravel()
 	}
 }
 
-void ALobbyGameMode::CheckAllPlayersInput()
-{
-	NumPlayersReady++;
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString(TEXT("Player has readied! successful broadcast!")));
-	}
-	// Check if all players are ready
-	if (NumPlayersReady == 1)
-	{
-		AllPlayersReadyDelegate.Broadcast();
-	}
-}
-
-void ALobbyGameMode::CallServerTravel()
-{
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
-	}
-}
-
 
 
 
