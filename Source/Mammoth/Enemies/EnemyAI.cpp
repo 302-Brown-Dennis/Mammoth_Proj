@@ -83,6 +83,11 @@ void AEnemyAI::BeginPlay()
 	AttackHitBoxCollison->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	AttackHitBoxCollison->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &AEnemyAI::ReceiveDamage);
+	}
+
 	//UE_LOG(LogTemp, Warning, TEXT("Enemy Begin play"));
 }
 
@@ -375,22 +380,32 @@ void AEnemyAI::PlayHitReactMontage()
 
 void AEnemyAI::OnRep_EnemyHealth(float LastHealth)
 {
+	UE_LOG(LogTemp, Warning, TEXT("ON REP ENEMY HEALTH"));
 	// Update enemy health bar function()
 	if (EnemyHealth < LastHealth)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Playing enemy hit react montage"));
 		PlayHitReactMontage();
 	}
 	if (EnemyHealth == 0.f)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("calling server die!"));
+		
 		Server_Die();
 	}
 }
 void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
 	float DamageToHealth = Damage;
-
+	
 	EnemyHealth = FMath::Clamp(EnemyHealth - DamageToHealth, 0.f, EnemyMaxHealth);
 
+	PlayHitReactMontage();
+	if (EnemyHealth == 0.f)
+	{
+		Server_Die();
+	}
+	UE_LOG(LogTemp, Warning, TEXT("ENEMY TOOK DAMAGE HEALTH IS: %f"), EnemyHealth);
 
 	// Update enemy health bar
 	
