@@ -6,14 +6,8 @@
 
 void UEnemyAnimInstance::NativeInitializeAnimation()
 {
-	if (Pawn == nullptr)
-	{
-		Pawn = TryGetPawnOwner();
-		if (Pawn)
-		{
-			Enemy = Cast<AEnemyAI>(Pawn);
-		}
-	}
+	Super::NativeInitializeAnimation();
+	Enemy = Cast<AEnemyAI>(TryGetPawnOwner());
 }
 
 void UEnemyAnimInstance::UpdateAnimationProperties()
