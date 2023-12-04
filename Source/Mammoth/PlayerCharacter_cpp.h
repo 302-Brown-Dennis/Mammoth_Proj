@@ -61,16 +61,23 @@ public:
 // Protected controls for creating steam session
 protected:
 
+	UFUNCTION(BlueprintCallable)
+	void PlayerHasReadyUp();
+
+	// Pointer to online session interface
+	IOnlineSessionPtr OnlineSessionInterface;
+
+
+// Protected controls for creating steam session
+protected:
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	void UseKeyPressed();
 
-
-
 // Create delegate
 private:
-	
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverHeadWidget;
@@ -104,6 +111,4 @@ private:
 	UPROPERTY()
 	class AMammothPlayerState* MammothPlayerState;
 
-
-	
 };

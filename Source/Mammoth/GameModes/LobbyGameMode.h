@@ -16,6 +16,7 @@ class MAMMOTH_API ALobbyGameMode : public AGameMode
 
 public:
 
+
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 	
@@ -23,8 +24,9 @@ public:
 
 
 private:
-	TArray<bool> PlayerInputStatus;
+
 	int32 NumOfPlayers;
+
 
 	UPROPERTY()
 	class ALobbyGameMode* LobbyGameMode;

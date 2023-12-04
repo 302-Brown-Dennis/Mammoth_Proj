@@ -42,6 +42,7 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
 	OverHeadWidget->SetupAttachment(RootComponent);
 
+
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 
@@ -132,8 +133,6 @@ void APlayerCharacter_cpp::SetOverlappingObject(AUseableItems* OverlappedObject)
 	}
 }
 
-
-
 void APlayerCharacter_cpp::OnRep_UseableItems(AUseableItems* LastObject)
 {
 	if (UseableItems)
@@ -170,8 +169,6 @@ void APlayerCharacter_cpp::OnMatchStateSet(FName State)
 void APlayerCharacter_cpp::HandleCooldown()
 {
 }
-
-
 
 void APlayerCharacter_cpp::Server_SetPlayerIsReady_Implementation()
 {

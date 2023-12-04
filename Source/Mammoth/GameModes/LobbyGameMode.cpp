@@ -66,9 +66,33 @@ void ALobbyGameMode::CheckPlayersReady()
 			//UE_LOG(LogTemp, Warning, TEXT("Player %s is mission ready!"), *MammothGamePlayerState->GetPlayerName());
 			//UE_LOG(LogTemp, Warning, TEXT("My Boolean Value: %s"), MammothGamePlayerState->GetPlayerIsReady() ? TEXT("true") : TEXT("false"));
 		}
+
 	}
 	UE_LOG(LogTemp, Warning, TEXT("All Players Ready!!!"));
 	//CallServerTravel();
+}
+
+void ALobbyGameMode::CallServerTravel()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
+	}
+}
+
+void ALobbyGameMode::CheckAllPlayersInput()
+{
+	NumPlayersReady++;
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString(TEXT("Player has readied! successful broadcast!")));
+	}
+	// Check if all players are ready
+	if (NumPlayersReady == 1)
+	{
+		AllPlayersReadyDelegate.Broadcast();
+	}
 }
 
 void ALobbyGameMode::CallServerTravel()
