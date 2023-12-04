@@ -145,7 +145,7 @@ public:
 	void Server_Attack();
 
 	UFUNCTION()
-	void OnRep_Attack();
+	void StartAttack();
 
 	UPROPERTY(ReplicatedUsing = OnRep_MovementStateChanged, VisibleAnywhere, Category = "AI")
 	EEnemyMovementState MovementState;
@@ -157,7 +157,7 @@ public:
 	void AttackEnd();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void PlayAttackMontage();
+	void MulticastPlayAttackMontage();
 
 	void PlayHitReactMontage();
 

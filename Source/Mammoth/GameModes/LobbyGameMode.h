@@ -9,8 +9,6 @@
  * 
  */
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAllPlayersReadyDelegate);
-
 UCLASS()
 class MAMMOTH_API ALobbyGameMode : public AGameMode
 {
@@ -18,19 +16,19 @@ class MAMMOTH_API ALobbyGameMode : public AGameMode
 
 public:
 
-	ALobbyGameMode();
-
-	virtual void BeginPlay() override;
-
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
-	FAllPlayersReadyDelegate AllPlayersReadyDelegate;
+	
+	void CheckPlayersReady();
+
 
 private:
 	TArray<bool> PlayerInputStatus;
-	int32 NumPlayersReady;
+	int32 NumOfPlayers;
 
-	void CheckAllPlayersInput();
+	UPROPERTY()
+	class ALobbyGameMode* LobbyGameMode;
+
 	void CallServerTravel();
 protected:
 

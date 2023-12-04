@@ -55,7 +55,7 @@ AEnemyAI::AEnemyAI()
 	// Actor network update time in seconds for replications
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
-
+	//UE_LOG(LogTemp, Warning, TEXT("Enemy constructor"));
 
 	SetEnemyMovementStatus(EEnemyMovementState::EMS_Idle);
 }
@@ -82,6 +82,8 @@ void AEnemyAI::BeginPlay()
 	AttackHitBoxCollison->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	AttackHitBoxCollison->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	AttackHitBoxCollison->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+	//UE_LOG(LogTemp, Warning, TEXT("Enemy Begin play"));
 }
 
 // Called every frame
@@ -116,14 +118,17 @@ void AEnemyAI::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
+
 // When player enters agro sphere AI will move to player
 void AEnemyAI::AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
+	//UE_LOG(LogTemp, Warning, TEXT("Agro sphere over lap"));
 	if (OtherActor && IsAlive())
 	{
 		APlayerCharacter_cpp* PlayerCharacter_cpp = Cast<APlayerCharacter_cpp>(OtherActor);
 		if (PlayerCharacter_cpp)
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("Found player! moving!"));
 			MoveToTarget(PlayerCharacter_cpp);
 		}
 	}
@@ -278,19 +283,19 @@ void AEnemyAI::Server_Attack_Implementation()
 		if (!IsAttacking())
 		{
 			bAttacking = true;
-			OnRep_Attack();
+			StartAttack();
 		}
 	}
 	
 }
 
 // Replicate the attack animation
-void AEnemyAI::OnRep_Attack()
+void AEnemyAI::StartAttack()
 {
 	if (HasAuthority())
 	{
 		SetEnemyMovementStatus(EEnemyMovementState::EMS_Attacking);
-		PlayAttackMontage();
+		MulticastPlayAttackMontage();
 		//UE_LOG(LogTemp, Warning, TEXT("IN OnRep_Attack and Has authority!!!"));	
 	}
 }
@@ -341,14 +346,14 @@ void AEnemyAI::AttackEnd()
 		float AttackTime = FMath::FRandRange(MinAttackTime, MaxAttackTime);
 		//UE_LOG(LogTemp, Warning, TEXT("Attack Time: %f"), AttackTime);
 		// Set up a timer for the attack delay
-		GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemyAI::OnRep_Attack, AttackTime);
+		GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemyAI::StartAttack, AttackTime);
 
 	}
 	
 }
 
 // Replicate the attack animation
-void AEnemyAI::PlayAttackMontage_Implementation()
+void AEnemyAI::MulticastPlayAttackMontage_Implementation()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && CombatMontage)
