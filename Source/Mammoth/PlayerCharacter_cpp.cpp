@@ -13,6 +13,8 @@
 #include "Mammoth/GameModes/LobbyGameMode.h"
 #include "Mammoth/GameState/MammothGameState.h"
 #include "Mammoth/PlayerState/MammothPlayerState.h"
+#include "Mammoth/PlayerController/MammothPlayerController.h"
+#include "GameFramework/PlayerController.h"
 
 // Sets default values
 APlayerCharacter_cpp::APlayerCharacter_cpp()
@@ -76,6 +78,16 @@ void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME_CONDITION(APlayerCharacter_cpp, UseableItems, COND_OwnerOnly);
 	DOREPLIFETIME(APlayerCharacter_cpp, MatchState);
 	DOREPLIFETIME(APlayerCharacter_cpp, NumOfPlayersReady);
+  DOREPLIFETIME(APlayerCharacter_cpp, Health);
+	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
+	//UE_LOG(LogTemp, Warning, TEXT("Character begin play!"));
+
+	//for player health and stamina
+	MammothPlayerController = Cast<AMammothPlayerController>(Controller);
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
+		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
+	}
 }
 
 // Called every frame
@@ -84,6 +96,16 @@ void APlayerCharacter_cpp::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Character tick!"));
+
+	//Sprinting Functionality
+	if (isSprinting) {
+		Stamina -= StaminaDrainRate * DeltaTime;
+	}
+	else {
+		Stamina += StaminaRegenRate * DeltaTime;
+	}
+
+	Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
 }
 
 // Called to bind functionality to input
@@ -92,8 +114,11 @@ void APlayerCharacter_cpp::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &APlayerCharacter_cpp::UseKeyPressed);
-
+	// Sprint functionality 
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter_cpp::StartSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter_cpp::StopSprint);
 }
+
 
 void APlayerCharacter_cpp::PostInitializeComponents()
 {
@@ -225,3 +250,24 @@ void APlayerCharacter_cpp::OnRep_MatchState()
 
 
 
+//Player Health Rep Function
+void APlayerCharacter_cpp::OnRep_Health() {
+
+}
+
+//Player Stamina Rep Function
+void APlayerCharacter_cpp::OnRep_Stamina() {
+
+}
+
+// Following Functions implemented for Stamina/Sprinting
+
+void APlayerCharacter_cpp::StartSprint() {
+	if (Stamina > 0.0f) {
+		isSprinting = true;
+	}
+}
+
+void APlayerCharacter_cpp::StopSprint() {
+	isSprinting = false;
+}
