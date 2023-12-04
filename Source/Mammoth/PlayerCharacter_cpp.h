@@ -5,78 +5,110 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/OnlineSessionInterface.h"
-
 #include "PlayerCharacter_cpp.generated.h"
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerAcceptanceDelegate);
 
 UCLASS(Blueprintable, config=Game)
 class MAMMOTH_API APlayerCharacter_cpp : public ACharacter
 {
 	GENERATED_BODY()
 
-public:
+public:	
+
 	// Sets default values for this character's properties
 	APlayerCharacter_cpp();
 
-	//FPlayerAcceptanceDelegate OnPlayerReady;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void PostInitializeComponents() override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintCallable)
-	void OpenLobby();
+	void PlayerHasReadyUp();
 
-	UFUNCTION(BlueprintCallable)
-	void CallOpenLevel(const FString& Address);
+	UFUNCTION(Server, Reliable)
+	void GetReadyAmount();
 
-	UFUNCTION(BlueprintCallable)
-	void CallClientTravel(const FString& Address);
+	UPROPERTY(ReplicatedUsing = OnRep_UpdatePlayersReady)
+	int32 NumOfPlayersReady;
 
-	// My Blueprint callable func for accepting or starting a new mission
-	UFUNCTION(BlueprintCallable)
-	void OnAccpetLevel();
+	UFUNCTION()
+	void OnRep_UpdatePlayersReady();
 
-// Online sub-system controls
-public:
+	void SetOverlappingObject(AUseableItems* OverlappedObject);
+
+	void OnMatchStateSet(FName State);
+
+	void HandleCooldown();
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetPlayerIsReady();
+
+	UFUNCTION(Server, Reliable)
+	void Server_UpdatePlayersReady();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_UpdatePlayersReady();
+
+	void UpdatePlayerReady();
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 
-	FPlayerAcceptanceDelegate PlayerAcceptanceDelegate;
+// Protected controls for creating steam session
+protected:
+
+	UFUNCTION(BlueprintCallable)
+	void PlayerHasReadyUp();
+
+	// Pointer to online session interface
+	IOnlineSessionPtr OnlineSessionInterface;
+
 
 // Protected controls for creating steam session
 protected:
-	UFUNCTION(BlueprintCallable)
-	void CreateGameSession();
 
-	UFUNCTION(BlueprintCallable)
-	void JoinGameSession();
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
-	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
-	void OnFindSessionsComplete(bool bWasSuccessful);
-	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
-
-	
+	void UseKeyPressed();
 
 // Create delegate
 private:
-	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
-	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
-	TSharedPtr<FOnlineSessionSearch> SessionSearch;
-	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
-
-	// MY CODE
-	//UPROPERTY(BlueprintAssignable, Category = "Acceptance")
-	//FPlayerAcceptanceDelegate OnPlayerAccepted;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverHeadWidget;
+
+	UPROPERTY(ReplicatedUsing = OnRep_UseableItems)
+	class AUseableItems* UseableItems;
+
+	UFUNCTION()
+	void OnRep_UseableItems(AUseableItems* LastObject);
+
+	UPROPERTY(VisibleAnywhere)
+	class UMissionComponents* Missions;
+
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TSubclassOf<class UUserWidget> MissionBoardWidget;
+
+	UPROPERTY()
+	class UMissionBoard* MissionBoard;
+
+	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
+	FName MatchState;
+
+	
+
+	UFUNCTION()
+	void OnRep_MatchState();
+
+	UPROPERTY()
+	class ALobbyGameMode* LobbyGameMode;
+
+	UPROPERTY()
+	class AMammothPlayerState* MammothPlayerState;
+
 };

@@ -5,90 +5,105 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 #include "Mammoth/PlayerCharacter_cpp.h"
-
-void ALobbyGameMode::TravelToNewLevel()
-{
-}
-
-ALobbyGameMode::ALobbyGameMode()
-{
-	//OnAllPlayersReady.AddDynamic(this, &ALobbyGameMode::TravelToNewLevel);
-}
+#include "GameFramework/PlayerController.h"
+#include "Mammoth/GameState/MammothGameState.h"
+#include "Mammoth/PlayerState/MammothPlayerState.h"
+#include "MultiplayerSessionSubsystem.h"
+#include "Net/UnrealNetwork.h"
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
 
 	Super::PostLogin(NewPlayer);
 
-	AGameStateBase* CurrentGameState = GetGameState<AGameStateBase>();
-	if (CurrentGameState)
+	class AMammothGameState* MammothGameState = GetWorld()->GetGameState<AMammothGameState>();
+
+	if (MammothGameState)
 	{
-		int32 NumberOfPlayers = CurrentGameState->PlayerArray.Num();
-		if(GEngine)
+		NumOfPlayers = MammothGameState->GetNumPlayers();
+	}
+
+	UGameInstance* GameInstance = GetGameInstance();
+	if (GameInstance)
+	{
+		UMultiplayerSessionSubsystem* Subsystem = GameInstance->GetSubsystem<UMultiplayerSessionSubsystem>();
+		check(Subsystem);
+
+		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT("Players in game: %d"), NumberOfPlayers));
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT("Players in game: %d"), NumOfPlayers));
 		}
 
 		APlayerState* PlayerState = NewPlayer->GetPlayerState<APlayerState>();
 		if (PlayerState)
 		{
 			FString PlayerName = PlayerState->GetPlayerName();
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("%s joined!"), *PlayerName));
-
-		}
-		/*
-		APlayerCharacter_cpp* PlayerController = Cast<APlayerCharacter_cpp>(NewPlayer);
-		if (PlayerController)
-		{
-			PlayerController->OnPlayerReady.AddDynamic(this, &ALobbyGameMode::CheckAllPlayerInput);
-		}
-		*/
-	}
-
-
-	// If statement here to check if all players have accepted a mission start, then travel to mission level
-	//UWorld* World = GetWorld();
-	//if (World)
-	//{
-	//	bUseSeamlessTravel = true;
-	//	World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
-	//}
-
-}
-
-void ALobbyGameMode::AllPlayersAcceptedTravel()
-{
-	/*
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{
-		APlayerCharacter_cpp* PlayerController = Cast<APlayerCharacter_cpp>(*It);
-		if (PlayerController)
-		{
-			if (!PlayerController->OnAccpetLevel())
-			{
-				return false;
-			}
 			if (GEngine)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString(TEXT("Player has accepted")));
-			}
+				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("%s joined!"), *PlayerName));
+			}                                    
 		}
+
 	}
-	return true;
-	*/
 }
 
-void ALobbyGameMode::CheckAllPlayerInput()
+// Server uses this to check all player ready state
+void ALobbyGameMode::CheckPlayersReady()
 {
+	AMammothGameState* MammothGameState = GetGameState<AMammothGameState>();
 
-	NumPlayersReady++;
-
-	if (NumPlayersReady == 4)
+	for (APlayerState* PlayerState : MammothGameState->GetPlayerArray())
 	{
-
+		AMammothPlayerState* MammothGamePlayerState = Cast<AMammothPlayerState>(PlayerState);
+		if (MammothGamePlayerState )
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("IN LOBBY GAME MODE CHECKING READIES!!!: %s"), MammothGamePlayerState->GetPlayerIsReady() ? TEXT("true") : TEXT("false"));
+			if (!MammothGamePlayerState->GetPlayerIsReady())
+			{
+				//UE_LOG(LogTemp, Warning, TEXT("FAILED TO GET PLAYER READY!!!"));
+				return;
+			}
+			//UE_LOG(LogTemp, Warning, TEXT("Player %s is mission ready!"), *MammothGamePlayerState->GetPlayerName());
+			//UE_LOG(LogTemp, Warning, TEXT("My Boolean Value: %s"), MammothGamePlayerState->GetPlayerIsReady() ? TEXT("true") : TEXT("false"));
+		}
 
 	}
-
+	UE_LOG(LogTemp, Warning, TEXT("All Players Ready!!!"));
+	//CallServerTravel();
 }
+
+void ALobbyGameMode::CallServerTravel()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
+	}
+}
+
+void ALobbyGameMode::CheckAllPlayersInput()
+{
+	NumPlayersReady++;
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString(TEXT("Player has readied! successful broadcast!")));
+	}
+	// Check if all players are ready
+	if (NumPlayersReady == 1)
+	{
+		AllPlayersReadyDelegate.Broadcast();
+	}
+}
+
+void ALobbyGameMode::CallServerTravel()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
+	}
+}
+
+
 
 

@@ -5,12 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
 #include "LobbyGameMode.generated.h"
-
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAllPlayersReadyDelegate);
-
 /**
  * 
  */
+
 UCLASS()
 class MAMMOTH_API ALobbyGameMode : public AGameMode
 {
@@ -18,20 +16,22 @@ class MAMMOTH_API ALobbyGameMode : public AGameMode
 
 public:
 
-	UFUNCTION(BlueprintCallable, Category = "GameTravel")
-	void TravelToNewLevel();
-	
-	ALobbyGameMode();
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
-	void AllPlayersAcceptedTravel();
+	
+	void CheckPlayersReady();
+
 
 private:
-	TArray<bool> PlayerInputStatus;
-	int32 NumPlayersReady;
 
-	void CheckAllPlayerInput();
+	int32 NumOfPlayers;
 
-	
+
+	UPROPERTY()
+	class ALobbyGameMode* LobbyGameMode;
+
+	void CallServerTravel();
+protected:
+
 };
