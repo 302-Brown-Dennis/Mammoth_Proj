@@ -106,7 +106,7 @@ void APlayerCharacter_cpp::PostInitializeComponents()
 
 void APlayerCharacter_cpp::PlayerHasReadyUp()
 {
-	GetReadyAmount();
+	
 	
 }
 void APlayerCharacter_cpp::GetReadyAmount_Implementation()

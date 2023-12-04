@@ -58,7 +58,6 @@ public:
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 
-
 // Protected controls for creating steam session
 protected:
 
