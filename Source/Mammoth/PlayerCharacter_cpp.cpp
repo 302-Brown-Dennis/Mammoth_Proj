@@ -7,20 +7,25 @@
 #include "OnlineSessionSettings.h"
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Mammoth/Items/UseableItems.h"
+#include "Mammoth/MammothGameComponents/MissionComponents.h"
+#include "Mammoth/HUD/MissionBoard.h"
+#include "Mammoth/GameModes/LobbyGameMode.h"
+#include "Mammoth/GameState/MammothGameState.h"
+#include "Mammoth/PlayerState/MammothPlayerState.h"
 #include "Mammoth/PlayerController/MammothPlayerController.h"
 #include "GameFramework/PlayerController.h"
 
 // Sets default values
-APlayerCharacter_cpp::APlayerCharacter_cpp():
-	CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &APlayerCharacter_cpp::OnCreateSessionComplete)),
-	FindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &APlayerCharacter_cpp::OnFindSessionsComplete)),
-	JoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &APlayerCharacter_cpp::OnJoinSessionComplete))
-	//AcceptDelegate(FPlayerAcceptanceDelegate::CreateUObject(this, &ThisClass::OnAccpetLevel))
+APlayerCharacter_cpp::APlayerCharacter_cpp()
 {
+	
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-
+	
+	bReplicates = true;
+	NumOfPlayersReady = 0;
+	bAlwaysRelevant = true;
 	//UE_LOG(LogTemp, Warning, TEXT("Character Constructor called!!"));
 	
 	// Accses our online sub system, Steam in this case
@@ -40,30 +45,41 @@ APlayerCharacter_cpp::APlayerCharacter_cpp():
 	OverHeadWidget->SetupAttachment(RootComponent);
 
 
-}
+	NetUpdateFrequency = 66.f;
+	MinNetUpdateFrequency = 33.f;
 
-//Daniel M Added GetLifetimeReplicated
-void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	//Missions = CreateDefaultSubobject<UMissionComponents>(TEXT("MissionComponents"));
+	//Missions->SetIsReplicated(true);
 
-	DOREPLIFETIME(APlayerCharacter_cpp, Health);
-	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
 }
 
 // Called when the game starts or when spawned
 void APlayerCharacter_cpp::BeginPlay()
 {
 	Super::BeginPlay();
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		APlayerController* PlayerController = World->GetFirstPlayerController();
+		if (PlayerController)
+		{
+			FInputModeGameOnly InputModeData;
+			PlayerController->SetInputMode(InputModeData);
+			PlayerController->SetShowMouseCursor(false);
 
-	//	StartSessionCompleteDelegate(FOnStartSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnStartSessionComplete))
-	//PlayerStartMissionDelegate.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
-	
-	
-	//PlayerAcceptanceDelegate.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
-	//AcceptDelegate.BindUFunction(this, FName(On))
+		}
+	}
+}
 
-	//OnPlayerAccepted.AddDynamic(this, &APlayerCharacter_cpp::OnAccpetLevel);
+void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME_CONDITION(APlayerCharacter_cpp, UseableItems, COND_OwnerOnly);
+	DOREPLIFETIME(APlayerCharacter_cpp, MatchState);
+	DOREPLIFETIME(APlayerCharacter_cpp, NumOfPlayersReady);
+  DOREPLIFETIME(APlayerCharacter_cpp, Health);
+	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
 	//UE_LOG(LogTemp, Warning, TEXT("Character begin play!"));
 
 	//for player health and stamina
@@ -97,183 +113,141 @@ void APlayerCharacter_cpp::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &APlayerCharacter_cpp::UseKeyPressed);
 	// Sprint functionality 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter_cpp::StartSprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter_cpp::StopSprint);
 }
 
-// Open a Lobby by server travelling to the lobby/hub level
-void APlayerCharacter_cpp::OpenLobby() {
 
-	UWorld* World = GetWorld();
-	if (World) {
-
-		World->ServerTravel("/Game/Levels/Level_01?listen");
-			//E:/Documents/Unreal Projects/Mammoth/Mammoth_Proj/Content/StarterContent/Maps/Hub_lvl.umap
-	}
-
-}
-
-// Blueprint callable function for opening a level
-void APlayerCharacter_cpp::CallOpenLevel(const FString& Address) {
-
-	UGameplayStatics::OpenLevel(this, *Address);
-}
-
-// Blueprint callable function travelling a client to a session
-void APlayerCharacter_cpp::CallClientTravel(const FString& Address) {
-
-	APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
-		if (PlayerController)
-		{
-			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
-		}
-}
-
-
-
-
-// Check if OnlineSessionInterface is vaild
-// Check if a session already exsits, if so destroy session
-// Store OnlineSessionInterface for later removal
-// Set Session Settings of our new session and create a session w/settings
-void APlayerCharacter_cpp::CreateGameSession()
+void APlayerCharacter_cpp::PostInitializeComponents()
 {
-	// Called on key press
-	if (!OnlineSessionInterface.IsValid())
+	Super::PostInitializeComponents();
+	if (Missions)
 	{
-		return;
+		//Missions->PlayerCharacter = this;
 	}
+}
 
-	auto ExistingSession = OnlineSessionInterface->GetNamedSession(NAME_GameSession);
-	if (ExistingSession != nullptr)
-	{
-		OnlineSessionInterface->DestroySession(NAME_GameSession);
-	}
-
-	OnlineSessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
+void APlayerCharacter_cpp::PlayerHasReadyUp()
+{
 	
-	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
-	SessionSettings->bIsLANMatch = false;
-	SessionSettings->NumPublicConnections = 4;
-	SessionSettings->bAllowJoinInProgress = true;
-	SessionSettings->bAllowJoinViaPresence = true;
-	SessionSettings->bShouldAdvertise = true;
-	SessionSettings->bUsesPresence = true;
-	SessionSettings->bUseLobbiesIfAvailable = true;
-	SessionSettings->Set(FName("MatchType"), FString("TeamPlay"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
-	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	OnlineSessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings);
-}
-
-
-// Check if OnlineSessionInterface is vaild
-// Store OnlineSessionInterface for later removal
-// Search for session
-void APlayerCharacter_cpp::JoinGameSession()
-{
-	// Find a game session
-	if (!OnlineSessionInterface.IsValid())
-	{
-		return;
-	}
-
-	OnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegate);
-
-	SessionSearch = MakeShareable(new FOnlineSessionSearch());
-	SessionSearch->MaxSearchResults = 1000;
-	SessionSearch->bIsLanQuery = false;
-	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
-
-
-	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
-}
-
-// If session created successfully travel to hub/level, display debug messages
-void APlayerCharacter_cpp::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
-{
-	if (bWasSuccessful)
-	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Created session: %s"), *SessionName.ToString()));
-		}
-
-		UWorld* World = GetWorld();
-		if (World)
-		{
-			World->ServerTravel("/Game/Levels/Level_01?listen");
-		}
-	}
-	else 
-	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString(TEXT("Failed to crate a session")));
-		}
-	}
-}
-
-// Loop through search results
-// Join Session with matching MatchType
-void APlayerCharacter_cpp::OnFindSessionsComplete(bool bWasSuccessful)
-{
-	if (!OnlineSessionInterface.IsValid())
-	{
-		return;
-	}
-	for (auto Results : SessionSearch->SearchResults)
-	{
-		FString SessionId = Results.GetSessionIdStr();
-		FString User = Results.Session.OwningUserName;
-		FString MatchType;
-		Results.Session.SessionSettings.Get(FName("MatchType"), MatchType);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("Id: %s, User: %s"), *SessionId, *User));
-		}
-
-		if (MatchType == FString("TeamPlay"))
-		{
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("Joing Match of type: %s"), *MatchType));
-			}
-
-			OnlineSessionInterface->AddOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegate);
-
-			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-			OnlineSessionInterface->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, Results);
-
-		}
-	}
 	
 }
-
-// Travel Client to found session, Debug message for server address
-void APlayerCharacter_cpp::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+void APlayerCharacter_cpp::GetReadyAmount_Implementation()
 {
-	if (!OnlineSessionInterface.IsValid())
+	int32 curval = NumOfPlayersReady;
+	UE_LOG(LogTemp, Warning, TEXT("NUM PLAYERS READY CALLED FROM SERVER READY AMOUNT: %d"), NumOfPlayersReady);
+	UE_LOG(LogTemp, Warning, TEXT("CUR VALUE CALLED FROM SERVER READY AMOUNT: %d"), curval);
+}
+
+
+void APlayerCharacter_cpp::SetOverlappingObject(AUseableItems* OverlappedObject)
+{
+	if (UseableItems)
 	{
-		return;
+		UseableItems->ShowItemUseWidget(false);
 	}
-	FString Address;
-	if (OnlineSessionInterface->GetResolvedConnectString(NAME_GameSession, Address)) 
+	UseableItems = OverlappedObject;
+	if (IsLocallyControlled())
 	{
-		if (GEngine)
+		if (UseableItems)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT("Connection String: %s"), *Address));
+			UseableItems->ShowItemUseWidget(true);
 		}
-
-		APlayerController *PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
-		if (PlayerController)
-		{
-			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
-		}
-
 	}
 }
+
+void APlayerCharacter_cpp::OnRep_UseableItems(AUseableItems* LastObject)
+{
+	if (UseableItems)
+	{
+		UseableItems->ShowItemUseWidget(true);
+	}
+	if (LastObject)
+	{
+		LastObject->ShowItemUseWidget(false);
+	}
+}
+
+void APlayerCharacter_cpp::UseKeyPressed()
+{
+	if (MissionBoardWidget == nullptr) return;
+	
+	if (MissionBoard == nullptr && UseableItems)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Menu key pressed! Creating Widget!!"));
+		MissionBoard = CreateWidget<UMissionBoard>(GetWorld(), MissionBoardWidget);
+	}
+	if (MissionBoard)
+	{
+		MissionBoard->MenuSetup();
+	}
+		
+		//Missions->ShowMissionBoardWidget();
+	
+}
+void APlayerCharacter_cpp::OnMatchStateSet(FName State)
+{
+	//MatchState = State;
+}
+void APlayerCharacter_cpp::HandleCooldown()
+{
+}
+
+void APlayerCharacter_cpp::Server_SetPlayerIsReady_Implementation()
+{
+	//NumOfPlayersReady++;
+	//Multicast_UpdatePlayersReady(NumOfPlayersReady);
+	// Get Lobby Game Mode
+	LobbyGameMode = Cast<ALobbyGameMode>(GetWorld()->GetAuthGameMode());
+	if (LobbyGameMode)
+	{
+		//NumOfPlayersReady++;
+		//UE_LOG(LogTemp, Warning, TEXT("NUM PLAYERS READY IS: %d"), NumOfPlayersReady);
+		// Make sure we have authority i.e. we are the server
+		if (HasAuthority())
+		{
+			//Multicast_UpdatePlayersReady();
+			UE_LOG(LogTemp, Warning, TEXT("wadawdawd: %d"), NumOfPlayersReady);
+			//UE_LOG(LogTemp, Warning, TEXT("CALLING CHECK PLAYERS"));
+			// Server checks all player states
+			LobbyGameMode->CheckPlayersReady();
+		}					
+	}
+}
+void APlayerCharacter_cpp::OnRep_UpdatePlayersReady()
+{
+	UE_LOG(LogTemp, Warning, TEXT("BEFORE MULTICAST PLAYERS READY IS: %d"), NumOfPlayersReady);
+	Multicast_UpdatePlayersReady();
+	UE_LOG(LogTemp, Warning, TEXT("AFTERRRR MULTICAST PLAYERS READY IS: %d"), NumOfPlayersReady);
+	
+}
+void APlayerCharacter_cpp::Multicast_UpdatePlayersReady_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("MULTICAST"));
+	NumOfPlayersReady++;
+	UE_LOG(LogTemp, Warning, TEXT("UYPDATING PLAYERS READY IS: %d"), NumOfPlayersReady);
+}
+void APlayerCharacter_cpp::Server_UpdatePlayersReady_Implementation()
+{
+	
+		UE_LOG(LogTemp, Warning, TEXT("IN SERVER FUNC AND HAS AUTHORITY!!!!!"));
+		//NumOfPlayersReady++;
+		OnRep_UpdatePlayersReady();
+	
+	//Multicast_UpdatePlayersReady();
+}
+void APlayerCharacter_cpp::UpdatePlayerReady()
+{
+	NumOfPlayersReady++;
+	Server_UpdatePlayersReady();
+}
+
+void APlayerCharacter_cpp::OnRep_MatchState()
+{
+}
+
 
 
 //Player Health Rep Function
