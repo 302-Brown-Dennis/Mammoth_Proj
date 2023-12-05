@@ -23,6 +23,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ShowPlayerNetRole(APawn* InPawn);
 
+	// True to show Remote role, False for local
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bShowRemoteOrLocalRole = false;
+
+	// Show or hide roles
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bShowRoles = true;
+
 protected:
 	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
 

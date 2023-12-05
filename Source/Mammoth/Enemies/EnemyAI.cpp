@@ -15,6 +15,12 @@
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/CapsuleComponent.h"
+
+// Test includes
+#include "GameFramework/PlayerController.h"
+#include "Engine/NetConnection.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/Controller.h"
 // Sets default values
 AEnemyAI::AEnemyAI()
 {
@@ -66,7 +72,11 @@ void AEnemyAI::BeginPlay()
 	Super::BeginPlay();
 	// Get Enemy Ai controller
 	AIController = Cast<AAIController>(GetController());
+	//class AController* TestController = GetController();
+	//APawn* MyPawn = TestController->GetPawn();
+	//TestController->Possess(MyPawn);
 	
+
 	// Bind spheres
 	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemyAI::AgroSphereOnOverlapBegin);
 	AgroSphere->OnComponentEndOverlap.AddDynamic(this, &AEnemyAI::AgroSphereOnOverlapEnd);
@@ -384,14 +394,20 @@ void AEnemyAI::OnRep_EnemyHealth(float LastHealth)
 	// Update enemy health bar function()
 	if (EnemyHealth < LastHealth)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Playing enemy hit react montage"));
+		//UE_LOG(LogTemp, Warning, TEXT("Playing enemy hit react montage"));
 		PlayHitReactMontage();
 	}
 	if (EnemyHealth == 0.f)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("calling server die!"));
 		
-		Server_Die();
+		UE_LOG(LogTemp, Warning, TEXT("Calling Server die"));
+		if (HasAuthority())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Has Authority"));
+			Server_Die();
+		}
+		
+		//Multicast_Die();
 	}
 }
 void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
@@ -403,15 +419,16 @@ void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageTy
 	PlayHitReactMontage();
 	if (EnemyHealth == 0.f)
 	{
-		Server_Die();
+		
 	}
 	UE_LOG(LogTemp, Warning, TEXT("ENEMY TOOK DAMAGE HEALTH IS: %f"), EnemyHealth);
 
 	// Update enemy health bar
 	
 }
-void AEnemyAI::Server_Die_Implementation()
+void AEnemyAI::Multicast_Die_Implementation()
 {
+	UE_LOG(LogTemp, Warning, TEXT("In multi-cast die"));
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && CombatMontage)
 	{
@@ -425,8 +442,14 @@ void AEnemyAI::Server_Die_Implementation()
 	AgroSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-}
 
+	OnDeath();
+}
+void AEnemyAI::Server_Die_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("IN server die"));
+	Multicast_Die();
+}
 void AEnemyAI::OnDeath()
 {
 	GetMesh()->bPauseAnims = true;

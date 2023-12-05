@@ -30,8 +30,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 	virtual void PostInitializeComponents() override;
 
 	// Called to bind functionality to input
@@ -45,6 +43,12 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_UpdatePlayersReady)
 	int32 NumOfPlayersReady;
+
+	UFUNCTION(BlueprintCallable)
+	void StartSprint();
+
+	UFUNCTION(BlueprintCallable)
+	void StopSprint();
 
 	UFUNCTION()
 	void OnRep_UpdatePlayersReady();
@@ -68,13 +72,13 @@ public:
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 
+	FTimerHandle StaminaDrainTimer;
+
 // Protected controls for creating steam session
 protected:
 
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 	void UseKeyPressed();
+	
 
 private:
 
@@ -136,12 +140,15 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Stamina")
 	float StaminaDrainRate = 5.f;
 
-	bool isSprinting = false;
-	void StartSprint();
-	void StopSprint();
+	bool bIsSprinting = false;
+
+	void DrainStamina();
+
+	void SetRunning(bool bNewSprintState);
 
 	UFUNCTION()
 	void OnRep_Stamina();
 
+	UPROPERTY()
 	class AMammothPlayerController* MammothPlayerController;
 };
