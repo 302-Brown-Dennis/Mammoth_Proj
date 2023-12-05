@@ -19,9 +19,6 @@ public:
 
 	//FPlayerAcceptanceDelegate OnPlayerReady;
 
-	//Daniel M Added 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -70,9 +67,6 @@ public:
 
 // Protected controls for creating steam session
 protected:
-
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
 	void UseKeyPressed();
 

@@ -69,6 +69,13 @@ void APlayerCharacter_cpp::BeginPlay()
 
 		}
 	}
+
+	//for player health and stamina
+	MammothPlayerController = Cast<AMammothPlayerController>(Controller);
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
+		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
+	}
 }
 
 void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -78,16 +85,9 @@ void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME_CONDITION(APlayerCharacter_cpp, UseableItems, COND_OwnerOnly);
 	DOREPLIFETIME(APlayerCharacter_cpp, MatchState);
 	DOREPLIFETIME(APlayerCharacter_cpp, NumOfPlayersReady);
-  DOREPLIFETIME(APlayerCharacter_cpp, Health);
+	DOREPLIFETIME(APlayerCharacter_cpp, Health);
 	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
 	//UE_LOG(LogTemp, Warning, TEXT("Character begin play!"));
-
-	//for player health and stamina
-	MammothPlayerController = Cast<AMammothPlayerController>(Controller);
-	if (MammothPlayerController) {
-		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
-		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
-	}
 }
 
 // Called every frame
@@ -115,8 +115,8 @@ void APlayerCharacter_cpp::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &APlayerCharacter_cpp::UseKeyPressed);
 	// Sprint functionality 
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter_cpp::StartSprint);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter_cpp::StopSprint);
+	PlayerInputComponent->BindAction("SprintButton", IE_Pressed, this, &APlayerCharacter_cpp::StartSprint);
+	PlayerInputComponent->BindAction("SprintButton", IE_Released, this, &APlayerCharacter_cpp::StopSprint);
 }
 
 
@@ -265,9 +265,11 @@ void APlayerCharacter_cpp::OnRep_Stamina() {
 void APlayerCharacter_cpp::StartSprint() {
 	if (Stamina > 0.0f) {
 		isSprinting = true;
+		UE_LOG(LogTemp, Warning, TEXT("Start Sprinting"));
 	}
 }
 
 void APlayerCharacter_cpp::StopSprint() {
 	isSprinting = false;
+	UE_LOG(LogTemp, Warning, TEXT("Stop Sprinting"));
 }
