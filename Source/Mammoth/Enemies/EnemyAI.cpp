@@ -406,8 +406,11 @@ void AEnemyAI::OnRep_EnemyHealth(float LastHealth)
 			UE_LOG(LogTemp, Warning, TEXT("Has Authority"));
 			Server_Die();
 		}
+		else
+		{
+			Multicast_Die();
+		}
 		
-		//Multicast_Die();
 	}
 }
 void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
@@ -419,7 +422,11 @@ void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageTy
 	PlayHitReactMontage();
 	if (EnemyHealth == 0.f)
 	{
-		
+		if (HasAuthority())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Has Authority IN RECEIVE DAMAGE"));
+			Server_Die();
+		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("ENEMY TOOK DAMAGE HEALTH IS: %f"), EnemyHealth);
 
