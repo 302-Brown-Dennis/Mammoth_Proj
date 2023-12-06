@@ -11,6 +11,11 @@
 #include "MultiplayerSessionSubsystem.h"
 #include "Net/UnrealNetwork.h"
 
+ALobbyGameMode::ALobbyGameMode()
+{
+
+}
+
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
 
@@ -62,14 +67,23 @@ void ALobbyGameMode::CheckPlayersReady()
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("FAILED TO GET PLAYER READY!!!"));
 				return;
+				
 			}
+		
 			//UE_LOG(LogTemp, Warning, TEXT("Player %s is mission ready!"), *MammothGamePlayerState->GetPlayerName());
 			//UE_LOG(LogTemp, Warning, TEXT("My Boolean Value: %s"), MammothGamePlayerState->GetPlayerIsReady() ? TEXT("true") : TEXT("false"));
 		}
 
 	}
-	UE_LOG(LogTemp, Warning, TEXT("All Players Ready!!!"));
-	//CallServerTravel();
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT("All players ready! Starting mission")));
+	}
+	CallServerTravel();
+	
+	
+	
 }
 
 void ALobbyGameMode::CallServerTravel()

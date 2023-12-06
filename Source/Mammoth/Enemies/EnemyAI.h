@@ -161,8 +161,11 @@ public:
 
 	void PlayHitReactMontage();
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Server, Reliable)
 	void Server_Die();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_Die();
 
 	UFUNCTION(BlueprintCallable)
 	void OnDeath();
