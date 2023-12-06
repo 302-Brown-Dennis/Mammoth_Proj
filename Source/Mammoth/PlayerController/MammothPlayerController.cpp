@@ -6,6 +6,7 @@
 #include "Mammoth/HUD/CharacterOverlay.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 
 void AMammothPlayerController::BeginPlay() {
 	Super::BeginPlay();

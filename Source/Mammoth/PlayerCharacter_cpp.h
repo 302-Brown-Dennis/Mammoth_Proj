@@ -8,6 +8,7 @@
 
 #include "PlayerCharacter_cpp.generated.h"
 
+
 UCLASS(Blueprintable, config=Game)
 class MAMMOTH_API APlayerCharacter_cpp : public ACharacter
 {
@@ -65,6 +66,18 @@ public:
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 
+
+	// For Sprinting
+
+	UFUNCTION(BlueprintCallable)
+	void StartSprint();
+
+	UFUNCTION(BlueprintCallable)
+	void StopSprint();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool isSprinting = false;
+
 // Protected controls for creating steam session
 protected:
 
@@ -111,31 +124,38 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	float MaxHealth = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	UPROPERTY(ReplicatedUsing = OnRep_Health, EditAnywhere, Category = "Player Stats")
 	float Health = 100.f;
 
 	UFUNCTION()
 	void OnRep_Health();
 
+	void UpdateHUDHealth();
+
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	float MaxStamina = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Stamina, VisibleAnywhere, Category = "Player Stats")
+	UPROPERTY(ReplicatedUsing = OnRep_Stamina, EditAnywhere, Category = "Player Stats")
 	float Stamina = 100.f;
 
 	// More stuff for Stamina
 	UPROPERTY(EditAnywhere, Category = "Stamina")
-	float StaminaRegenRate = 10.f;
+	float StaminaRegenRate = 5.f;
 
 	UPROPERTY(EditAnywhere, Category = "Stamina")
-	float StaminaDrainRate = 5.f;
+	float StaminaDrainRate = 2.5f;
 
-	bool isSprinting = false;
-	void StartSprint();
-	void StopSprint();
+	void SetSprinting(bool bNewSprintState);
+	void DrainStamina();
+	void RegenStamina();
+
+	FTimerHandle StaminaDrainTimer;
+	FTimerHandle StaminaRegenTimer;
 
 	UFUNCTION()
 	void OnRep_Stamina();
+
+	void UpdateHUDStamina();
 
 	class AMammothPlayerController* MammothPlayerController;
 };

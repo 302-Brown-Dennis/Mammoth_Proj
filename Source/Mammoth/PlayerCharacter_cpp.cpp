@@ -15,10 +15,10 @@
 #include "Mammoth/PlayerState/MammothPlayerState.h"
 #include "Mammoth/PlayerController/MammothPlayerController.h"
 #include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
 
 // Sets default values
-APlayerCharacter_cpp::APlayerCharacter_cpp()
-{
+APlayerCharacter_cpp::APlayerCharacter_cpp(){
 	
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -70,12 +70,9 @@ void APlayerCharacter_cpp::BeginPlay()
 		}
 	}
 
-	//for player health and stamina
-	MammothPlayerController = Cast<AMammothPlayerController>(Controller);
-	if (MammothPlayerController) {
-		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
-		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
-	}
+	UpdateHUDHealth();
+	UpdateHUDStamina();
+	
 }
 
 void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -96,16 +93,7 @@ void APlayerCharacter_cpp::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Character tick!"));
-
-	//Sprinting Functionality
-	if (isSprinting) {
-		Stamina -= StaminaDrainRate * DeltaTime;
-	}
-	else {
-		Stamina += StaminaRegenRate * DeltaTime;
-	}
-
-	Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
+	
 }
 
 // Called to bind functionality to input
@@ -114,9 +102,6 @@ void APlayerCharacter_cpp::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &APlayerCharacter_cpp::UseKeyPressed);
-	// Sprint functionality 
-	PlayerInputComponent->BindAction("SprintButton", IE_Pressed, this, &APlayerCharacter_cpp::StartSprint);
-	PlayerInputComponent->BindAction("SprintButton", IE_Released, this, &APlayerCharacter_cpp::StopSprint);
 }
 
 
@@ -252,24 +237,79 @@ void APlayerCharacter_cpp::OnRep_MatchState()
 
 //Player Health Rep Function
 void APlayerCharacter_cpp::OnRep_Health() {
+	UpdateHUDHealth();
+}
 
+void APlayerCharacter_cpp::UpdateHUDHealth() {
+	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
 }
 
 //Player Stamina Rep Function
 void APlayerCharacter_cpp::OnRep_Stamina() {
+	UpdateHUDStamina();
+}
 
+void APlayerCharacter_cpp::UpdateHUDStamina() {
+	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
+	}
 }
 
 // Following Functions implemented for Stamina/Sprinting
 
 void APlayerCharacter_cpp::StartSprint() {
-	if (Stamina > 0.0f) {
-		isSprinting = true;
-		UE_LOG(LogTemp, Warning, TEXT("Start Sprinting"));
-	}
+	SetSprinting(true);
 }
 
 void APlayerCharacter_cpp::StopSprint() {
-	isSprinting = false;
-	UE_LOG(LogTemp, Warning, TEXT("Stop Sprinting"));
+	SetSprinting(false);
+}
+
+void APlayerCharacter_cpp::DrainStamina()
+{
+	Stamina = FMath::Max(Stamina - StaminaDrainRate, 0.0f);
+	UpdateHUDStamina();
+	if (Stamina <= 0.0f)
+	{
+		GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
+		// Player is out of stamina, stop running
+		SetSprinting(false);
+		UE_LOG(LogTemp, Warning, TEXT("DrainStamina SetSprinting False"));
+	}
+}
+
+void APlayerCharacter_cpp::RegenStamina()
+{
+	if ((isSprinting == false) && (Stamina <= 100.0f)) {
+		Stamina = FMath::Min(Stamina + StaminaRegenRate, MaxStamina);
+		UpdateHUDStamina();
+		UE_LOG(LogTemp, Warning, TEXT("RegenStam Activated"));
+	}
+}
+
+
+void APlayerCharacter_cpp::SetSprinting(bool bNewState) {
+	if (isSprinting != bNewState)
+	{
+		isSprinting = bNewState;
+
+		if (isSprinting)
+		{
+			GetWorldTimerManager().SetTimer(StaminaDrainTimer, this, &APlayerCharacter_cpp::DrainStamina, 1.0f, true);
+			UE_LOG(LogTemp, Warning, TEXT("Stamina draining: %f"), Stamina);
+			GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
+
+		}
+		else
+		{
+			GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
+			GetWorldTimerManager().SetTimer(StaminaRegenTimer, this, &APlayerCharacter_cpp::RegenStamina, 1.0f, true);
+			UE_LOG(LogTemp, Warning, TEXT("Stamina Regenerating"));
+			GetWorldTimerManager().ClearTimer(StaminaDrainTimer);
+		}
+	}
 }
