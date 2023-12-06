@@ -298,10 +298,12 @@ void APlayerCharacter_cpp::SetRunning(bool bNewSprintState)
 		if (bIsSprinting)
 		{
 			GetWorldTimerManager().SetTimer(StaminaDrainTimer, this, &APlayerCharacter_cpp::DrainStamina, 1.0f, true);
+			UE_LOG(LogTemp, Warning, TEXT("Stamina draining: %f"), Stamina);
 		}
 		else
 		{
 			GetWorldTimerManager().ClearTimer(StaminaDrainTimer);
+			//notifiy
 		}
 	}
 }
