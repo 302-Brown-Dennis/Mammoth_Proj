@@ -82,6 +82,8 @@ public:
 
 	FTimerHandle DeathTimer;
 
+	FTimerHandle DeathTimeAni;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	float DeathDelay;
 
@@ -161,8 +163,11 @@ public:
 
 	void PlayHitReactMontage();
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Server, Reliable)
 	void Server_Die();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_Die();
 
 	UFUNCTION(BlueprintCallable)
 	void OnDeath();
@@ -170,4 +175,7 @@ public:
 	bool IsAlive();
 
 	void DestroyEnemy();
+	
+	private:
+		bool bHasOverlappedAgroSphere = false;
 };

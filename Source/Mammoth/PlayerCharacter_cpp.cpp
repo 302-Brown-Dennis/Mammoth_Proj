@@ -16,9 +16,11 @@
 #include "Mammoth/PlayerController/MammothPlayerController.h"
 #include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
-APlayerCharacter_cpp::APlayerCharacter_cpp(){
+APlayerCharacter_cpp::APlayerCharacter_cpp()
+{
 	
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -26,6 +28,11 @@ APlayerCharacter_cpp::APlayerCharacter_cpp(){
 	bReplicates = true;
 	NumOfPlayersReady = 0;
 	bAlwaysRelevant = true;
+
+
+	bIsSprinting = false;
+	MaxStamina = 100.f;
+	Stamina = MaxStamina;
 	//UE_LOG(LogTemp, Warning, TEXT("Character Constructor called!!"));
 	
 	// Accses our online sub system, Steam in this case
@@ -69,10 +76,12 @@ void APlayerCharacter_cpp::BeginPlay()
 
 		}
 	}
-
 	UpdateHUDHealth();
 	UpdateHUDStamina();
-	
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &APlayerCharacter_cpp::ReceiveDamage);
+	}
 }
 
 void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -82,9 +91,12 @@ void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME_CONDITION(APlayerCharacter_cpp, UseableItems, COND_OwnerOnly);
 	DOREPLIFETIME(APlayerCharacter_cpp, MatchState);
 	DOREPLIFETIME(APlayerCharacter_cpp, NumOfPlayersReady);
-	DOREPLIFETIME(APlayerCharacter_cpp, Health);
+    DOREPLIFETIME(APlayerCharacter_cpp, Health);
 	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
 	//UE_LOG(LogTemp, Warning, TEXT("Character begin play!"));
+
+	//for player health and stamina
+	
 }
 
 // Called every frame
@@ -93,7 +105,18 @@ void APlayerCharacter_cpp::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Character tick!"));
-	
+
+	//Sprinting Functionality
+	/*
+	if (bIsSprinting) {
+		Stamina -= StaminaDrainRate * DeltaTime;
+	}
+	else {
+		Stamina += StaminaRegenRate * DeltaTime;
+	}
+
+	Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
+	*/
 }
 
 // Called to bind functionality to input
@@ -102,6 +125,9 @@ void APlayerCharacter_cpp::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &APlayerCharacter_cpp::UseKeyPressed);
+	// Sprint functionality 
+	//PlayerInputComponent->BindAction("SprintButton", IE_Pressed, this, &APlayerCharacter_cpp::StartSprint);
+	//PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter_cpp::StopSprint);
 }
 
 
@@ -157,6 +183,7 @@ void APlayerCharacter_cpp::OnRep_UseableItems(AUseableItems* LastObject)
 
 void APlayerCharacter_cpp::UseKeyPressed()
 {
+	
 	if (MissionBoardWidget == nullptr) return;
 	
 	if (MissionBoard == nullptr && UseableItems)
@@ -232,41 +259,34 @@ void APlayerCharacter_cpp::UpdatePlayerReady()
 void APlayerCharacter_cpp::OnRep_MatchState()
 {
 }
-
-
-
 //Player Health Rep Function
-void APlayerCharacter_cpp::OnRep_Health() {
+void APlayerCharacter_cpp::OnRep_Health(float LastHealth) 
+{
 	UpdateHUDHealth();
 }
-
 void APlayerCharacter_cpp::UpdateHUDHealth() {
 	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
 	if (MammothPlayerController) {
 		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
 	}
 }
-
 //Player Stamina Rep Function
-void APlayerCharacter_cpp::OnRep_Stamina() {
+void APlayerCharacter_cpp::OnRep_Stamina() 
+{
 	UpdateHUDStamina();
 }
-
 void APlayerCharacter_cpp::UpdateHUDStamina() {
 	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
 	if (MammothPlayerController) {
 		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
 	}
 }
-
 // Following Functions implemented for Stamina/Sprinting
 
-void APlayerCharacter_cpp::StartSprint() {
-	SetSprinting(true);
-}
+void APlayerCharacter_cpp::StartSprint() 
+{
 
-void APlayerCharacter_cpp::StopSprint() {
-	SetSprinting(false);
+	SetSprinting(true);
 }
 
 void APlayerCharacter_cpp::DrainStamina()
@@ -281,35 +301,44 @@ void APlayerCharacter_cpp::DrainStamina()
 		UE_LOG(LogTemp, Warning, TEXT("DrainStamina SetSprinting False"));
 	}
 }
-
 void APlayerCharacter_cpp::RegenStamina()
 {
-	if ((isSprinting == false) && (Stamina <= 100.0f)) {
+	if ((bIsSprinting == false) && (Stamina <= 100.0f)) {
 		Stamina = FMath::Min(Stamina + StaminaRegenRate, MaxStamina);
 		UpdateHUDStamina();
 		UE_LOG(LogTemp, Warning, TEXT("RegenStam Activated"));
 	}
 }
-
-
-void APlayerCharacter_cpp::SetSprinting(bool bNewState) {
-	if (isSprinting != bNewState)
+void APlayerCharacter_cpp::StopSprint() 
+{
+	SetSprinting(false);
+}
+void APlayerCharacter_cpp::SetSprinting(bool bNewSprintState)
+{
+	if (bIsSprinting != bNewSprintState)
 	{
-		isSprinting = bNewState;
-
-		if (isSprinting)
+		bIsSprinting = bNewSprintState;
+		OnMyVariableChanged(bIsSprinting);
+		if (bIsSprinting)
 		{
 			GetWorldTimerManager().SetTimer(StaminaDrainTimer, this, &APlayerCharacter_cpp::DrainStamina, 1.0f, true);
-			UE_LOG(LogTemp, Warning, TEXT("Stamina draining: %f"), Stamina);
 			GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
-
 		}
 		else
 		{
-			GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
 			GetWorldTimerManager().SetTimer(StaminaRegenTimer, this, &APlayerCharacter_cpp::RegenStamina, 1.0f, true);
-			UE_LOG(LogTemp, Warning, TEXT("Stamina Regenerating"));
 			GetWorldTimerManager().ClearTimer(StaminaDrainTimer);
+			//notifiy
 		}
 	}
+}
+void APlayerCharacter_cpp::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)
+{
+	float DamageToHealth = Damage;
+	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
+	if (HasAuthority())
+	{
+		UpdateHUDHealth();
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("MY health is!: %f"), Health);
 }

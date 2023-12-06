@@ -8,7 +8,6 @@
 
 #include "PlayerCharacter_cpp.generated.h"
 
-
 UCLASS(Blueprintable, config=Game)
 class MAMMOTH_API APlayerCharacter_cpp : public ACharacter
 {
@@ -20,15 +19,19 @@ public:
 
 	//FPlayerAcceptanceDelegate OnPlayerReady;
 
+	//Daniel M Added 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void PostInitializeComponents() override;
 
@@ -44,6 +47,21 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_UpdatePlayersReady)
 	int32 NumOfPlayersReady;
 
+	UFUNCTION(BlueprintCallable)
+	void StartSprint();
+
+	UFUNCTION(BlueprintCallable)
+	void StopSprint();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
+	float MaxHealth = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	float Health = 100.f;
+
+	UFUNCTION()
+	void OnRep_Health(float LastHealth);
+
 	UFUNCTION()
 	void OnRep_UpdatePlayersReady();
 
@@ -52,6 +70,12 @@ public:
 	void OnMatchStateSet(FName State);
 
 	void HandleCooldown();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "My Character")
+	bool bIsSprinting = false;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "My Character")
+	void OnMyVariableChanged(bool bNewValue);
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetPlayerIsReady();
@@ -66,22 +90,14 @@ public:
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 
-
-	// For Sprinting
-
-	UFUNCTION(BlueprintCallable)
-	void StartSprint();
-
-	UFUNCTION(BlueprintCallable)
-	void StopSprint();
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool isSprinting = false;
+	FTimerHandle StaminaDrainTimer;
+	FTimerHandle StaminaRegenTimer;
 
 // Protected controls for creating steam session
 protected:
 
 	void UseKeyPressed();
+	
 
 private:
 
@@ -121,41 +137,31 @@ private:
 	* Player Health and Stamina
 	*/
 
-	UPROPERTY(EditAnywhere, Category = "Player Stats")
-	float MaxHealth = 100.f;
-
-	UPROPERTY(ReplicatedUsing = OnRep_Health, EditAnywhere, Category = "Player Stats")
-	float Health = 100.f;
-
-	UFUNCTION()
-	void OnRep_Health();
-
+	void UpdateHUDStamina();
 	void UpdateHUDHealth();
+	
 
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	float MaxStamina = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Stamina, EditAnywhere, Category = "Player Stats")
+	UPROPERTY(ReplicatedUsing = OnRep_Stamina, VisibleAnywhere, Category = "Player Stats")
 	float Stamina = 100.f;
 
 	// More stuff for Stamina
 	UPROPERTY(EditAnywhere, Category = "Stamina")
-	float StaminaRegenRate = 5.f;
+	float StaminaRegenRate = 10.f;
 
 	UPROPERTY(EditAnywhere, Category = "Stamina")
-	float StaminaDrainRate = 2.5f;
+	float StaminaDrainRate = 15.f;
 
-	void SetSprinting(bool bNewSprintState);
 	void DrainStamina();
 	void RegenStamina();
 
-	FTimerHandle StaminaDrainTimer;
-	FTimerHandle StaminaRegenTimer;
+	void SetSprinting(bool bNewSprintState);
 
 	UFUNCTION()
 	void OnRep_Stamina();
 
-	void UpdateHUDStamina();
-
+	UPROPERTY()
 	class AMammothPlayerController* MammothPlayerController;
 };
