@@ -82,6 +82,8 @@ public:
 
 	FTimerHandle DeathTimer;
 
+	FTimerHandle DeathTimeAni;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	float DeathDelay;
 
@@ -173,4 +175,7 @@ public:
 	bool IsAlive();
 
 	void DestroyEnemy();
+	
+	private:
+		bool bHasOverlappedAgroSphere = false;
 };

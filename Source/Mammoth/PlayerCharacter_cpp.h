@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/OnlineSessionInterface.h"
+
 #include "PlayerCharacter_cpp.generated.h"
 
 UCLASS(Blueprintable, config=Game)
@@ -24,6 +25,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 
 public:	
 	// Called every frame
@@ -49,6 +53,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StopSprint();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
+	float MaxHealth = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	float Health = 100.f;
+
+	UFUNCTION()
+	void OnRep_Health(float LastHealth);
+
 	UFUNCTION()
 	void OnRep_UpdatePlayersReady();
 
@@ -57,6 +70,12 @@ public:
 	void OnMatchStateSet(FName State);
 
 	void HandleCooldown();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "My Character")
+	bool bIsSprinting = false;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "My Character")
+	void OnMyVariableChanged(bool bNewValue);
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetPlayerIsReady();
@@ -72,6 +91,7 @@ public:
 	IOnlineSessionPtr OnlineSessionInterface;
 
 	FTimerHandle StaminaDrainTimer;
+	FTimerHandle StaminaRegenTimer;
 
 // Protected controls for creating steam session
 protected:
@@ -117,14 +137,9 @@ private:
 	* Player Health and Stamina
 	*/
 
-	UPROPERTY(EditAnywhere, Category = "Player Stats")
-	float MaxHealth = 100.f;
-
-	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
-	float Health = 100.f;
-
-	UFUNCTION()
-	void OnRep_Health();
+	void UpdateHUDStamina();
+	void UpdateHUDHealth();
+	
 
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	float MaxStamina = 100.f;
@@ -137,13 +152,12 @@ private:
 	float StaminaRegenRate = 10.f;
 
 	UPROPERTY(EditAnywhere, Category = "Stamina")
-	float StaminaDrainRate = 5.f;
-
-	bool bIsSprinting = false;
+	float StaminaDrainRate = 15.f;
 
 	void DrainStamina();
+	void RegenStamina();
 
-	void SetRunning(bool bNewSprintState);
+	void SetSprinting(bool bNewSprintState);
 
 	UFUNCTION()
 	void OnRep_Stamina();
