@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/OnlineSessionInterface.h"
-
 #include "PlayerCharacter_cpp.generated.h"
 
 UCLASS(Blueprintable, config=Game)
