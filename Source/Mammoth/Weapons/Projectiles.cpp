@@ -22,7 +22,7 @@ AProjectiles::AProjectiles()
 	CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
-	//CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 	//CollisionBox->SetCollisionResponseToChannel(ECC_Skel)
 
 
@@ -51,6 +51,7 @@ void AProjectiles::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrim
 			UGameplayStatics::ApplyDamage(OtherActor, Damage, OwnerController, this, UDamageType::StaticClass());
 		}
 	}
+	Destroy();
 }
 
 void AProjectiles::Tick(float DeltaTime)
