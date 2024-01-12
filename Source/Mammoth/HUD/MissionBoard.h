@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Class for handling starting missions
+// Author: Dennis Brown
 
 #pragma once
 

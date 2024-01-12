@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Main player class
+// Author: All
 
 
 #include "PlayerCharacter_cpp.h"
@@ -298,7 +299,7 @@ void APlayerCharacter_cpp::DrainStamina()
 		GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
 		// Player is out of stamina, stop running
 		SetSprinting(false);
-		UE_LOG(LogTemp, Warning, TEXT("DrainStamina SetSprinting False"));
+		//UE_LOG(LogTemp, Warning, TEXT("DrainStamina SetSprinting False"));
 	}
 }
 void APlayerCharacter_cpp::RegenStamina()
@@ -306,7 +307,7 @@ void APlayerCharacter_cpp::RegenStamina()
 	if ((bIsSprinting == false) && (Stamina <= 100.0f)) {
 		Stamina = FMath::Min(Stamina + StaminaRegenRate, MaxStamina);
 		UpdateHUDStamina();
-		UE_LOG(LogTemp, Warning, TEXT("RegenStam Activated"));
+		//UE_LOG(LogTemp, Warning, TEXT("RegenStam Activated"));
 	}
 }
 void APlayerCharacter_cpp::StopSprint() 

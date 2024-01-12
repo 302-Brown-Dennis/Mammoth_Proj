@@ -1,3 +1,6 @@
+// Item crafting recipes
+// Author: Cristian Ruelas
+
 #pragma once
 
 #include "CoreMinimal.h"
