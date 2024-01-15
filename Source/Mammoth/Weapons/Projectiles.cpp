@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Bullets fired from guns
+// Author: Jake Bottenberg
 
 
 #include "Projectiles.h"

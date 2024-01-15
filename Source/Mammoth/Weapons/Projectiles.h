@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Bullets fired from guns
+// Author: Jake Bottenberg
 
 #pragma once
 
@@ -24,7 +25,7 @@ protected:
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UPROPERTY(EditAnywhere)
-	float Damage = 20.f;
+	float Damage = 12.f;
 
 private:
 

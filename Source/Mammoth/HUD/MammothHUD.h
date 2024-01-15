@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Player HUD
+// Author: Daniel Matthies
 
 #pragma once
 

@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Enemy AI controller
+// Author: Dennis Brown
 
 #pragma once
 
@@ -13,5 +14,11 @@ UCLASS()
 class MAMMOTH_API AEnemyAIController : public AAIController
 {
 	GENERATED_BODY()
+
+public:
+	AEnemyAIController();
+
 	
+protected:
+	virtual void BeginPlay() override;
 };
