@@ -163,6 +163,7 @@ void AEnemyAI::AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("Found player! moving!"));
 			PlayerTarget = PlayerCharacter_cpp;
+			SetEnemyMovementStatus(EEnemyMovementState::EMS_MoveToTarget);
 			MoveToTarget(PlayerTarget);
 			bHasOverlappedAgroSphere = true;
 		}
