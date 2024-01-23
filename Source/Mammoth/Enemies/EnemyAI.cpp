@@ -19,8 +19,15 @@
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/WidgetComponent.h"
 
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+
+#include "Mammoth/HUD/EnemyHealthBarOverlay.h"
 #include "EnemyAIController.h"
+
+#include "Components/ProgressBar.h"
 
 // Test includes
 #include "GameFramework/PlayerController.h"
@@ -52,11 +59,14 @@ AEnemyAI::AEnemyAI()
 	AttackHitBoxCollison->SetupAttachment(GetMesh(), FName("EnemySocket"));
 	//AttackHitBoxCollison->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("EnemySocket"));
 	
+	EnemyHealthBarOverlay = CreateDefaultSubobject<UWidgetComponent>(TEXT("EnemyHealthBarFloat"));
+	EnemyHealthBarOverlay->SetupAttachment(RootComponent);
+	
 
 	// Replicate actor to all remote machines
 	bReplicates = true;
 	bOverLappingCombatSphere = false;
-
+	
 	// Enemy stats
 	EnemyDamage = 10.f;
 
@@ -80,14 +90,23 @@ void AEnemyAI::BeginPlay()
 	Super::BeginPlay();
 	// Get Enemy Ai controller
 	AIController = Cast<AAIController>(GetController());
+	EnemyHealth = EnemyMaxHealth;
 	//class AController* TestController = GetController();
 	//APawn* MyPawn = TestController->GetPawn();
 	//TestController->Possess(MyPawn);
-	
-	
 	// Get AI controller
 	TAIController = Cast<AEnemyAIController>(GetController());
-
+	EnemyHealthBarOverlayclass = Cast<UEnemyHealthBarOverlay>(EnemyHealthBarOverlay->GetUserWidgetObject());
+	if (EnemyHealthBarOverlayclass)
+	{
+		UpdateEnemyHealthBar();
+		EnemyHealthBarOverlayclass->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CAST FAILED!!!"));
+	}
+	
 
 	// Bind spheres
 	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemyAI::AgroSphereOnOverlapBegin);
@@ -109,8 +128,6 @@ void AEnemyAI::BeginPlay()
 	{
 		OnTakeAnyDamage.AddDynamic(this, &AEnemyAI::ReceiveDamage);
 	}
-
-	//UE_LOG(LogTemp, Warning, TEXT("Enemy Begin play"));
 }
 
 // Called every frame
@@ -151,6 +168,7 @@ void AEnemyAI::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 // When player enters agro sphere AI will move to player
 void AEnemyAI::AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
+	
 	if (!bHasOverlappedAgroSphere)
 	{
 		PlayerTarget = nullptr;
@@ -161,6 +179,7 @@ void AEnemyAI::AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent
 		APlayerCharacter_cpp* PlayerCharacter_cpp = Cast<APlayerCharacter_cpp>(OtherActor);
 		if (PlayerCharacter_cpp)
 		{
+			EnemyHealthBarOverlayclass->SetVisibility(ESlateVisibility::Visible);
 			//UE_LOG(LogTemp, Warning, TEXT("Found player! moving!"));
 			PlayerTarget = PlayerCharacter_cpp;
 			SetEnemyMovementStatus(EEnemyMovementState::EMS_MoveToTarget);
@@ -305,14 +324,14 @@ void AEnemyAI::AttackHitBoxOnOverlapEnd(UPrimitiveComponent* OverlappedComponent
 }
 
 // Activate the collision hit box on the attacking component
-void AEnemyAI::ActivateCollision()
+void AEnemyAI::ActivateAttackHitBoxCollision()
 {
 	// error here?
 	AttackHitBoxCollison->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }
 
 // Deactivate the collision hit box on the attacking component
-void AEnemyAI::DeactivateCollision()
+void AEnemyAI::DeactivateAttackHitBoxCollision()
 {
 	AttackHitBoxCollison->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
@@ -425,7 +444,7 @@ void AEnemyAI::MulticastPlayAttackMontage_Implementation()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && CombatMontage)
-	{
+	{ 
 		AnimInstance->Montage_Play(CombatMontage);
 		AnimInstance->Montage_JumpToSection(FName("Attack"), CombatMontage);
 	}
@@ -451,6 +470,8 @@ void AEnemyAI::OnRep_EnemyHealth(float LastHealth)
 	if (EnemyHealth < LastHealth)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Playing enemy hit react montage"));
+		//PlayBlood();
+		UpdateEnemyHealthBar();
 		PlayHitReactMontage();
 	}
 	if (EnemyHealth == 0.f)
@@ -459,16 +480,40 @@ void AEnemyAI::OnRep_EnemyHealth(float LastHealth)
 	}
 
 }
+void AEnemyAI::MulticastUpdateEnemyHealthBar_Implementation()
+{
+	float EnemyHealthPercent = EnemyHealth / EnemyMaxHealth;
+
+	//UE_LOG(LogTemp, Warning, TEXT("Enemy health percent is: %f"), EnemyHealthPercent);
+	EnemyHealthBarOverlayclass->UpdateEnemyHealthBar(EnemyHealthPercent);
+	
+}
+void AEnemyAI::UpdateEnemyHealthBar()
+{
+	float EnemyHealthPercent = EnemyHealth / EnemyMaxHealth;
+
+	//UE_LOG(LogTemp, Warning, TEXT("Enemy health percent is: %f"), EnemyHealthPercent);
+	EnemyHealthBarOverlayclass->UpdateEnemyHealthBar(EnemyHealthPercent);
+	//MulticastUpdateEnemyHealthBar();
+}
+void AEnemyAI::SetBulletHitlocation(FVector HitLocation)
+{
+	BulletHitLocation = HitLocation;
+}
 void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
 	float DamageToHealth = Damage;
 	
 	EnemyHealth = FMath::Clamp(EnemyHealth - DamageToHealth, 0.f, EnemyMaxHealth);
+	UpdateEnemyHealthBar();
+	UpdateHealthBarVisibilty();
+	//EnemyHealthBarOverlayclass->SetVisibility(ESlateVisibility::Visible);
+	MulticastPlayBloodEffects();
 	
-
 	PlayHitReactMontage();
 	if (EnemyHealth == 0.f)
 	{
+		EnemyHealthBarOverlayclass->SetVisibility(ESlateVisibility::Hidden);
 		Server_Die();
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("ENEMY TOOK DAMAGE HEALTH IS: %f"), EnemyHealth);
@@ -476,14 +521,56 @@ void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageTy
 	// Update enemy health bar
 	
 }
+void AEnemyAI::UpdateHealthBarVisibilty_Implementation()
+{
+	EnemyHealthBarOverlayclass->SetVisibility(ESlateVisibility::Visible);
+}
+void AEnemyAI::PlayBlood()
+{
+	UE_LOG(LogTemp, Warning, TEXT("IN PLAY BLOOD"));
+	if (BloodEffects == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BLOOD EFFECT IS NULL"));
+		return;
+	}
+	if (BloodComponent == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BLOOD COMPONENT WAS NULL, SPAWNING NOW"));
+		BloodComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(BloodEffects, GetCapsuleComponent(),
+			FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition, true);
+	}
+	if (BloodComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BLOOD COMPONENT WAS NULL, ACTIVATING"));
+		BloodComponent->Activate();
+	}
+}
+void AEnemyAI::MulticastPlayBloodEffects_Implementation()
+{
+	if (BloodEffects == nullptr) return;
+	if (BloodComponent == nullptr)
+	{
+		BloodComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(BloodEffects, GetCapsuleComponent(),
+			FName(), BulletHitLocation, GetActorRotation(), EAttachLocation::KeepWorldPosition, true);
+	}
+	if (BloodComponent)
+	{
+		BloodComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(BloodEffects, GetCapsuleComponent(),
+			FName(), BulletHitLocation, GetActorRotation(), EAttachLocation::KeepWorldPosition, true);
+	}
+	
+}
+
 float AEnemyAI::GetEnemyHealth() const
 {
 	return EnemyHealth;
 }
+
 float AEnemyAI::GetEnemyMaxHealth() const
 {
 	return EnemyMaxHealth;
 }
+
 void AEnemyAI::Server_Die_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("In multi-cast die"));

@@ -76,7 +76,7 @@ public:
 	bool bIsSprinting = false;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "My Character")
-	void OnMyVariableChanged(bool bNewValue);
+	void OnSprintStateChangeBPEvent(bool bNewValue);
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetPlayerIsReady();

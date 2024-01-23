@@ -5,7 +5,7 @@
 #include "EnemyAI.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/NetConnection.h"
-#include "Components/WidgetComponent.h"
+
 
 
 void AEnemyAIController::BeginPlay()

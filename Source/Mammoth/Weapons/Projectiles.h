@@ -17,6 +17,9 @@ public:
 	AProjectiles();
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	void SetOwningPlayer(APlayerCharacter_cpp* OwningPlayer);
+
 protected:
 	
 	virtual void BeginPlay() override;
@@ -33,6 +36,8 @@ private:
 	class UBoxComponent* CollisionBox;
 
 public:	
+
+	class APlayerCharacter_cpp* PlayerCharacter;
 	
 	
 
