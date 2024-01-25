@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Main player class
+// Author: All
 
 
 #include "PlayerCharacter_cpp.h"
@@ -25,9 +26,8 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	bReplicates = true;
 	NumOfPlayersReady = 0;
-	bAlwaysRelevant = true;
+	
 
 
 	bIsSprinting = false;
@@ -35,9 +35,8 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 	Stamina = MaxStamina;
 	//UE_LOG(LogTemp, Warning, TEXT("Character Constructor called!!"));
 	
-	// Accses our online sub system, Steam in this case
+	// Accses steam online sub-system and check if valid
 	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
-	// Check if sub system is valid
 	if (OnlineSubsystem)
 	{
 		OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
@@ -48,15 +47,20 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 		}
 	}
 
-	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
-	OverHeadWidget->SetupAttachment(RootComponent);
-
-
+	
+	/*
+	* Multiplayer settings stuff
+	*/
+	// Net update frequency
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 
-	//Missions = CreateDefaultSubobject<UMissionComponents>(TEXT("MissionComponents"));
-	//Missions->SetIsReplicated(true);
+	bReplicates = true;
+	bAlwaysRelevant = true;
+	// Testing widget for displaying players role on server
+	// Can be toggled in WPB_OverHeadWidget Blueprint
+	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
+	OverHeadWidget->SetupAttachment(RootComponent);
 
 }
 
@@ -298,7 +302,7 @@ void APlayerCharacter_cpp::DrainStamina()
 		GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
 		// Player is out of stamina, stop running
 		SetSprinting(false);
-		UE_LOG(LogTemp, Warning, TEXT("DrainStamina SetSprinting False"));
+		//UE_LOG(LogTemp, Warning, TEXT("DrainStamina SetSprinting False"));
 	}
 }
 void APlayerCharacter_cpp::RegenStamina()
@@ -306,7 +310,7 @@ void APlayerCharacter_cpp::RegenStamina()
 	if ((bIsSprinting == false) && (Stamina <= 100.0f)) {
 		Stamina = FMath::Min(Stamina + StaminaRegenRate, MaxStamina);
 		UpdateHUDStamina();
-		UE_LOG(LogTemp, Warning, TEXT("RegenStam Activated"));
+		//UE_LOG(LogTemp, Warning, TEXT("RegenStam Activated"));
 	}
 }
 void APlayerCharacter_cpp::StopSprint() 
@@ -318,7 +322,7 @@ void APlayerCharacter_cpp::SetSprinting(bool bNewSprintState)
 	if (bIsSprinting != bNewSprintState)
 	{
 		bIsSprinting = bNewSprintState;
-		OnMyVariableChanged(bIsSprinting);
+		OnSprintStateChangeBPEvent(bIsSprinting);
 		if (bIsSprinting)
 		{
 			GetWorldTimerManager().SetTimer(StaminaDrainTimer, this, &APlayerCharacter_cpp::DrainStamina, 1.0f, true);

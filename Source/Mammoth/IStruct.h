@@ -1,3 +1,6 @@
+// Used for items in game
+// Author: Cristian Ruelas
+
 #pragma once
 
 #include "CoreMinimal.h"

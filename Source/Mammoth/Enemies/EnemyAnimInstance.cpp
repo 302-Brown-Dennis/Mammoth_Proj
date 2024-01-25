@@ -1,4 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Loosley based on Stephen Ulibarri Udemy course https://www.udemy.com/course/unreal-engine-the-ultimate-game-developer-course/
+// Adapted to work with multiplayer
+// Author: Dennis Brown
 
 
 #include "EnemyAnimInstance.h"

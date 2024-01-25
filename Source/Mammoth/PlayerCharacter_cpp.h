@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Main player class
+// Author: All
 
 #pragma once
 
@@ -75,7 +76,7 @@ public:
 	bool bIsSprinting = false;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "My Character")
-	void OnMyVariableChanged(bool bNewValue);
+	void OnSprintStateChangeBPEvent(bool bNewValue);
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetPlayerIsReady();

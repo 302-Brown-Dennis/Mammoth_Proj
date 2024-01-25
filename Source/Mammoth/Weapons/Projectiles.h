@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Bullets fired from guns
+// Author: Jake Bottenberg
 
 #pragma once
 
@@ -16,6 +17,9 @@ public:
 	AProjectiles();
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	void SetOwningPlayer(APlayerCharacter_cpp* OwningPlayer);
+
 protected:
 	
 	virtual void BeginPlay() override;
@@ -32,6 +36,8 @@ private:
 	class UBoxComponent* CollisionBox;
 
 public:	
+
+	class APlayerCharacter_cpp* PlayerCharacter;
 	
 	
 

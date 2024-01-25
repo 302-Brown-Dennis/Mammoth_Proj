@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Currently unused
+// Author: Dennis Brown
 
 
 #include "MissionComponents.h"
