@@ -40,7 +40,6 @@ AEnemyAI::AEnemyAI()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 	// Set Enemy agro sphere
 	AgroSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AgroSphere"));
 	AgroSphere->SetupAttachment(GetRootComponent());
@@ -91,6 +90,8 @@ void AEnemyAI::BeginPlay()
 	// Get Enemy Ai controller
 	AIController = Cast<AAIController>(GetController());
 	EnemyHealth = EnemyMaxHealth;
+	bWasAttacked = false;
+	bWasSpawned = false;
 	//class AController* TestController = GetController();
 	//APawn* MyPawn = TestController->GetPawn();
 	//TestController->Possess(MyPawn);
@@ -179,6 +180,7 @@ void AEnemyAI::AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent
 		APlayerCharacter_cpp* PlayerCharacter_cpp = Cast<APlayerCharacter_cpp>(OtherActor);
 		if (PlayerCharacter_cpp)
 		{
+			bWasAttacked = true;
 			EnemyHealthBarOverlayclass->SetVisibility(ESlateVisibility::Visible);
 			//UE_LOG(LogTemp, Warning, TEXT("Found player! moving!"));
 			PlayerTarget = PlayerCharacter_cpp;
@@ -455,12 +457,12 @@ void AEnemyAI::PlayHitReactMontage()
 	HitSound->VolumeMultiplier = HitSoundVolume;
 	UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
 	
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && CombatMontage)
-	{
+	//UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	//if (AnimInstance && CombatMontage)
+	//{
 		//AnimInstance->Montage_Play(CombatMontage);
 		//AnimInstance->Montage_JumpToSection(FName("DamageReact"), CombatMontage);
-	}
+	//}
 }
 
 void AEnemyAI::OnRep_EnemyHealth(float LastHealth)
@@ -479,6 +481,18 @@ void AEnemyAI::OnRep_EnemyHealth(float LastHealth)
 		PlayDeathMontage();
 	}
 
+}
+bool AEnemyAI::GetWasAttacked()
+{
+	return bWasAttacked;
+}
+bool AEnemyAI::GetWasSpawned()
+{
+	return bWasSpawned;
+}
+void AEnemyAI::SetWasSpawned()
+{
+	bWasSpawned = true;
 }
 void AEnemyAI::MulticastUpdateEnemyHealthBar_Implementation()
 {
@@ -503,6 +517,7 @@ void AEnemyAI::SetBulletHitlocation(FVector HitLocation)
 void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
 	float DamageToHealth = Damage;
+	bWasAttacked = true;
 	
 	EnemyHealth = FMath::Clamp(EnemyHealth - DamageToHealth, 0.f, EnemyMaxHealth);
 	UpdateEnemyHealthBar();

@@ -237,6 +237,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnDeath();
 
+	UFUNCTION(BlueprintCallable)
+	bool GetWasAttacked();
+
 	bool IsAlive();
 
 	void DestroyEnemy();
@@ -255,10 +258,18 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayBloodEffects();
 
+	UFUNCTION(BlueprintCallable)
 	void SetBulletHitlocation(FVector HitLocation);
+
+	UFUNCTION(BlueprintCallable)
+	bool GetWasSpawned();
+
+	void SetWasSpawned();
 	
 private:
 	bool bHasOverlappedAgroSphere = false;
+	bool bWasAttacked = false;
+	bool bWasSpawned = false;
 private:
 	//UPROPERTY(EditAnywhere, Category = "UI")
 	//TSubclassOf<class UUserWidget> EnemyHealthBarOverlayWidget;

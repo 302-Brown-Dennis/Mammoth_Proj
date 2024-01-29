@@ -88,6 +88,9 @@ public:
 	void Multicast_UpdatePlayersReady();
 
 	void UpdatePlayerReady();
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateHUDAmmo();
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 

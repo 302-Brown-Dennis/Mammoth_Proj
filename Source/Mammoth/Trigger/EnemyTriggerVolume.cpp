@@ -73,6 +73,7 @@ void AEnemyTriggerVolume::ServerSpawnEnemy_Implementation(const FVector& SpawnLo
     AEnemyAI* NewEnemy = GetWorld()->SpawnActor<AEnemyAI>(EnemyBlueprint, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
     if (NewEnemy)
     {
+        NewEnemy->SetWasSpawned();
         NewEnemy->MoveToTarget(Target);
     }
 
