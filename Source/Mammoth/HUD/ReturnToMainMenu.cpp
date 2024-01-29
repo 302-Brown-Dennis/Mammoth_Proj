@@ -1,5 +1,4 @@
 // Class for returning to main menu
-// Author: Daniel Matthies
 
 #include "ReturnToMainMenu.h"
 #include "GameFramework/PlayerController.h"
