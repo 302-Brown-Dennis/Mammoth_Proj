@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Bullets fired from guns
+// Author: Jake Bottenberg
 
 
 #include "Projectiles.h"
@@ -7,6 +8,8 @@
 #include "GameFramework/Character.h"
 #include "Components/BoxComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Mammoth/PlayerCharacter_cpp.h"
+#include "GameFramework/Actor.h"
 
 
 AProjectiles::AProjectiles()
@@ -45,7 +48,9 @@ void AProjectiles::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrim
 	if (OwnerEnemy)
 	{
 		AController* OwnerController = OwnerEnemy->GetController();
-
+		OwnerEnemy->SetBulletHitlocation(Hit.ImpactPoint);
+		OwnerEnemy->PlayerTarget = PlayerCharacter;
+		OwnerEnemy->MoveToTarget(PlayerCharacter);
 		if (OwnerController)
 		{
 			UGameplayStatics::ApplyDamage(OtherActor, Damage, OwnerController, this, UDamageType::StaticClass());
@@ -58,5 +63,18 @@ void AProjectiles::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AProjectiles::SetOwningPlayer(APlayerCharacter_cpp* OwningPlayer)
+{
+	PlayerCharacter = OwningPlayer;
+	if (PlayerCharacter)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FOUND PLAYER CHARACTER!!!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FAILED TO GET PLAYER CHARACTER!!!"));
+	}
 }
 

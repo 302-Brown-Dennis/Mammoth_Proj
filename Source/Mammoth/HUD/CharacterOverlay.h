@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Character overlay
+// Author: Daniel Matthies
 
 #pragma once
 
@@ -22,4 +23,7 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* StaminaBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* WeaponIcon;
 };

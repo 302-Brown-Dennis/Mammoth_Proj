@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Class for triggering enemy spawns
+// Author: Dennis Brown
 
 
 #include "EnemyTriggerVolume.h"
@@ -72,6 +73,7 @@ void AEnemyTriggerVolume::ServerSpawnEnemy_Implementation(const FVector& SpawnLo
     AEnemyAI* NewEnemy = GetWorld()->SpawnActor<AEnemyAI>(EnemyBlueprint, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
     if (NewEnemy)
     {
+        NewEnemy->SetWasSpawned();
         NewEnemy->MoveToTarget(Target);
     }
 

@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Main player class
+// Author: All
 
 
 #include "PlayerCharacter_cpp.h"
@@ -16,6 +17,7 @@
 #include "Mammoth/PlayerController/MammothPlayerController.h"
 #include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 APlayerCharacter_cpp::APlayerCharacter_cpp()
@@ -24,9 +26,8 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	bReplicates = true;
 	NumOfPlayersReady = 0;
-	bAlwaysRelevant = true;
+	
 
 
 	bIsSprinting = false;
@@ -34,9 +35,8 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 	Stamina = MaxStamina;
 	//UE_LOG(LogTemp, Warning, TEXT("Character Constructor called!!"));
 	
-	// Accses our online sub system, Steam in this case
+	// Accses steam online sub-system and check if valid
 	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
-	// Check if sub system is valid
 	if (OnlineSubsystem)
 	{
 		OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
@@ -47,15 +47,20 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 		}
 	}
 
-	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
-	OverHeadWidget->SetupAttachment(RootComponent);
-
-
+	
+	/*
+	* Multiplayer settings stuff
+	*/
+	// Net update frequency
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 
-	//Missions = CreateDefaultSubobject<UMissionComponents>(TEXT("MissionComponents"));
-	//Missions->SetIsReplicated(true);
+	bReplicates = true;
+	bAlwaysRelevant = true;
+	// Testing widget for displaying players role on server
+	// Can be toggled in WPB_OverHeadWidget Blueprint
+	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
+	OverHeadWidget->SetupAttachment(RootComponent);
 
 }
 
@@ -75,10 +80,11 @@ void APlayerCharacter_cpp::BeginPlay()
 
 		}
 	}
-	MammothPlayerController = Cast<AMammothPlayerController>(Controller);
-	if (MammothPlayerController) {
-		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
-		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
+	UpdateHUDHealth();
+	UpdateHUDStamina();
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &APlayerCharacter_cpp::ReceiveDamage);
 	}
 }
 
@@ -258,52 +264,89 @@ void APlayerCharacter_cpp::OnRep_MatchState()
 {
 }
 //Player Health Rep Function
-void APlayerCharacter_cpp::OnRep_Health() {
-
+void APlayerCharacter_cpp::OnRep_Health(float LastHealth) 
+{
+	UpdateHUDHealth();
 }
-
+void APlayerCharacter_cpp::UpdateHUDHealth() {
+	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
+}
 //Player Stamina Rep Function
-void APlayerCharacter_cpp::OnRep_Stamina() {
+void APlayerCharacter_cpp::OnRep_Stamina() 
+{
+	UpdateHUDStamina();
+}
+void APlayerCharacter_cpp::UpdateHUDStamina() {
+	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
+	}
+}
+void APlayerCharacter_cpp::UpdateHUDAmmo()
+{
 
 }
-
 // Following Functions implemented for Stamina/Sprinting
 
 void APlayerCharacter_cpp::StartSprint() 
 {
 
-	SetRunning(true);
+	SetSprinting(true);
 }
 
 void APlayerCharacter_cpp::DrainStamina()
 {
 	Stamina = FMath::Max(Stamina - StaminaDrainRate, 0.0f);
+	UpdateHUDStamina();
 	if (Stamina <= 0.0f)
 	{
+		GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
 		// Player is out of stamina, stop running
-		SetRunning(false);
+		SetSprinting(false);
+		//UE_LOG(LogTemp, Warning, TEXT("DrainStamina SetSprinting False"));
+	}
+}
+void APlayerCharacter_cpp::RegenStamina()
+{
+	if ((bIsSprinting == false) && (Stamina <= 100.0f)) {
+		Stamina = FMath::Min(Stamina + StaminaRegenRate, MaxStamina);
+		UpdateHUDStamina();
+		//UE_LOG(LogTemp, Warning, TEXT("RegenStam Activated"));
 	}
 }
 void APlayerCharacter_cpp::StopSprint() 
 {
-	SetRunning(false);
+	SetSprinting(false);
 }
-
-void APlayerCharacter_cpp::SetRunning(bool bNewSprintState) 
+void APlayerCharacter_cpp::SetSprinting(bool bNewSprintState)
 {
 	if (bIsSprinting != bNewSprintState)
 	{
 		bIsSprinting = bNewSprintState;
-
+		OnSprintStateChangeBPEvent(bIsSprinting);
 		if (bIsSprinting)
 		{
 			GetWorldTimerManager().SetTimer(StaminaDrainTimer, this, &APlayerCharacter_cpp::DrainStamina, 1.0f, true);
-			UE_LOG(LogTemp, Warning, TEXT("Stamina draining: %f"), Stamina);
+			GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
 		}
 		else
 		{
+			GetWorldTimerManager().SetTimer(StaminaRegenTimer, this, &APlayerCharacter_cpp::RegenStamina, 1.0f, true);
 			GetWorldTimerManager().ClearTimer(StaminaDrainTimer);
 			//notifiy
 		}
 	}
+}
+void APlayerCharacter_cpp::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)
+{
+	float DamageToHealth = Damage;
+	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
+	if (HasAuthority())
+	{
+		UpdateHUDHealth();
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("MY health is!: %f"), Health);
 }

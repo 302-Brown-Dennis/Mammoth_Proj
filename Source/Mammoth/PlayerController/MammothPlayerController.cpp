@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Player Controller
+// Author: Daniel Matthies
 
 
 #include "MammothPlayerController.h"
@@ -6,6 +7,7 @@
 #include "Mammoth/HUD/CharacterOverlay.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 
 void AMammothPlayerController::BeginPlay() {
 	Super::BeginPlay();

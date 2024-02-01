@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Item crafting recipes
+// Author: Cristian Ruelas
 
 
 #include "RecipeStruct.h"
