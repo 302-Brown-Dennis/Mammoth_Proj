@@ -170,12 +170,12 @@ void AEnemyAI::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 void AEnemyAI::AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
 	
-	if (!bHasOverlappedAgroSphere)
+	if (!bHasOverlappedAgroSphere && PlayerTarget == nullptr)
 	{
 		PlayerTarget = nullptr;
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("Agro sphere over lap"));
-	if (OtherActor->IsA(APlayerCharacter_cpp::StaticClass()) && IsAlive() && !PlayerTarget)
+	if (OtherActor->IsA(APlayerCharacter_cpp::StaticClass()) && IsAlive() && PlayerTarget == nullptr)
 	{
 		APlayerCharacter_cpp* PlayerCharacter_cpp = Cast<APlayerCharacter_cpp>(OtherActor);
 		if (PlayerCharacter_cpp)
@@ -201,7 +201,7 @@ void AEnemyAI::AgroSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, 
 		{
 			PlayerTarget = nullptr;
 			bHasOverlappedAgroSphere = false;
-			SetEnemyMovementStatus(EEnemyMovementState::EMS_Idle);
+			//SetEnemyMovementStatus(EEnemyMovementState::EMS_Idle);
 			
 			if (AIController)
 			{
@@ -255,13 +255,15 @@ void AEnemyAI::CombatSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent
 // Move to player using nav mesh
 void AEnemyAI::MoveToTarget(APlayerCharacter_cpp* Target)
 {
-	SetEnemyMovementStatus(EEnemyMovementState::EMS_MoveToTarget);
 	
-	if (AIController)
+	
+	if (AIController && IsAlive())
 	{
+		SetEnemyMovementStatus(EEnemyMovementState::EMS_MoveToTarget);
 		//UE_LOG(LogTemp, Warning, TEXT("Moving to Target!"));
+		PlayerTarget = Target;
 		FAIMoveRequest MoveRequest;
-		MoveRequest.SetGoalActor(Target);
+		MoveRequest.SetGoalActor(PlayerTarget);
 		MoveRequest.SetAcceptanceRadius(MoveAcceptanceDistance);
 
 		FNavPathSharedPtr NavPath;
@@ -272,6 +274,17 @@ void AEnemyAI::MoveToTarget(APlayerCharacter_cpp* Target)
 }
 // END functions that might need changing
 
+bool AEnemyAI::bHasPlayerTarget()
+{
+	if (PlayerTarget == nullptr)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
 
 
 
@@ -310,8 +323,9 @@ void AEnemyAI::AttackHitBoxOnOverlapBegin(UPrimitiveComponent* OverlappedCompone
 			if (OwnerController)
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("FOUND CONTROLLER!"));
+				UGameplayStatics::ApplyDamage(OtherActor, EnemyDamage, OwnerController, this, UDamageType::StaticClass());
 			}
-			UGameplayStatics::ApplyDamage(OtherActor, EnemyDamage, OwnerController, this, UDamageType::StaticClass());
+			
 			
 		}
 	}
@@ -360,12 +374,12 @@ void AEnemyAI::Server_Attack_Implementation()
 // Replicate the attack animation
 void AEnemyAI::StartAttack()
 {
-	if (HasAuthority())
-	{
+	
+	
 		SetEnemyMovementStatus(EEnemyMovementState::EMS_Attacking);
 		MulticastPlayAttackMontage();
 		//UE_LOG(LogTemp, Warning, TEXT("IN OnRep_Attack and Has authority!!!"));	
-	}
+	
 }
 
 void AEnemyAI::PlayDeathMontage()
@@ -377,7 +391,7 @@ void AEnemyAI::PlayDeathMontage()
 		AnimInstance->Montage_Play(CombatMontage);
 		AnimInstance->Montage_JumpToSection(FName("Death"), CombatMontage);
 	}
-	SetEnemyMovementStatus(EEnemyMovementState::EMS_Dead);
+	//SetEnemyMovementStatus(EEnemyMovementState::EMS_Dead);
 
 	AttackHitBoxCollison->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CombatSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -393,7 +407,7 @@ void AEnemyAI::PlayDeathMontage()
 void AEnemyAI::SetEnemyMovementStatus(EEnemyMovementState State)
 {
 	MovementState = State;
-	OnMovementStateSet();
+	//OnMovementStateSet();
 }
 
 // Replicate a movement state change
@@ -418,6 +432,12 @@ void AEnemyAI::OnMovementStateSet()
 
 	case EEnemyMovementState::EMS_MoveToTarget:
 		MovementState = EEnemyMovementState::EMS_MoveToTarget;
+		break;
+
+	case EEnemyMovementState::EMS_Dead:
+		MovementState = EEnemyMovementState::EMS_Dead;
+		break;
+
 
 	default:
 		MovementState = EEnemyMovementState::EMS_MAX;
@@ -430,6 +450,7 @@ void AEnemyAI::AttackEnd()
 {
 	
 	bAttacking = false;
+	SetEnemyMovementStatus(EEnemyMovementState::EMS_Idle);
 	if (bOverLappingCombatSphere)
 	{
 		float AttackTime = FMath::FRandRange(MinAttackTime, MaxAttackTime);
@@ -526,8 +547,9 @@ void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageTy
 	MulticastPlayBloodEffects();
 	
 	PlayHitReactMontage();
-	if (EnemyHealth == 0.f)
+	if (EnemyHealth <= 0.f)
 	{
+		SetEnemyMovementStatus(EEnemyMovementState::EMS_Dead);
 		EnemyHealthBarOverlayclass->SetVisibility(ESlateVisibility::Hidden);
 		Server_Die();
 	}
@@ -542,21 +564,17 @@ void AEnemyAI::UpdateHealthBarVisibilty_Implementation()
 }
 void AEnemyAI::PlayBlood()
 {
-	UE_LOG(LogTemp, Warning, TEXT("IN PLAY BLOOD"));
 	if (BloodEffects == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BLOOD EFFECT IS NULL"));
 		return;
 	}
 	if (BloodComponent == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BLOOD COMPONENT WAS NULL, SPAWNING NOW"));
 		BloodComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(BloodEffects, GetCapsuleComponent(),
 			FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition, true);
 	}
 	if (BloodComponent)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BLOOD COMPONENT WAS NULL, ACTIVATING"));
 		BloodComponent->Activate();
 	}
 }
@@ -597,7 +615,7 @@ void AEnemyAI::Server_Die_Implementation()
 		AnimInstance->Montage_Play(CombatMontage);
 		AnimInstance->Montage_JumpToSection(FName("Death"), CombatMontage);
 	}
-	SetEnemyMovementStatus(EEnemyMovementState::EMS_Dead);
+	//SetEnemyMovementStatus(EEnemyMovementState::EMS_Dead);
 
 	AttackHitBoxCollison->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CombatSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);

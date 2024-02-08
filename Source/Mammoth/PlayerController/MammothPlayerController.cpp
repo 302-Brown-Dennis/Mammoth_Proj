@@ -43,3 +43,18 @@ void AMammothPlayerController::SetHUDStamina(float Stamina, float MaxStamina) {
 		MammothHUD->CharacterOverlay->StaminaBar->SetPercent(StaminaPercent);
 	}
 }
+
+void AMammothPlayerController::SetHUDAmmo(int32 Ammo)
+{
+	MammothHUD = MammothHUD == nullptr ? Cast<AMammothHUD>(GetHUD()) : MammothHUD;
+
+	bool mHUDValid = MammothHUD &&
+		MammothHUD->CharacterOverlay &&
+		MammothHUD->CharacterOverlay->AmmoText;
+
+	if (mHUDValid) {
+		FString AmmoText = FString::Printf(TEXT("%d"), FMath::CeilToInt(Ammo));
+		MammothHUD->CharacterOverlay->AmmoText->SetText(FText::FromString(AmmoText));
+	}
+
+}

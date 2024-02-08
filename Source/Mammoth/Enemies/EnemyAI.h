@@ -190,7 +190,7 @@ public:
 	bool bOverLappingCombatSphere;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
-	APlayerCharacter_cpp* PlayerTarget;
+	APlayerCharacter_cpp* PlayerTarget = nullptr;
 
 
 	// TESTTTT
@@ -240,6 +240,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetWasAttacked();
 
+	UFUNCTION(BlueprintCallable)
 	bool IsAlive();
 
 	void DestroyEnemy();
@@ -265,6 +266,9 @@ public:
 	bool GetWasSpawned();
 
 	void SetWasSpawned();
+
+	UFUNCTION(BlueprintCallable)
+	bool bHasPlayerTarget();
 	
 private:
 	bool bHasOverlappedAgroSphere = false;

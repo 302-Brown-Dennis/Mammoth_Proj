@@ -90,7 +90,7 @@ public:
 	void UpdatePlayerReady();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateHUDAmmo();
+	void UpdateHUDAmmo(int32 Ammo);
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 
