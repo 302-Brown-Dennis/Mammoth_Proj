@@ -5,6 +5,8 @@
 
 #include "EnemyAnimInstance.h"
 #include "EnemyAI.h"
+#include "Kismet/KismetMathLibrary.h"
+
 
 void UEnemyAnimInstance::NativeInitializeAnimation()
 {
@@ -13,7 +15,7 @@ void UEnemyAnimInstance::NativeInitializeAnimation()
 	Pawn = TryGetPawnOwner();
 }
 
-void UEnemyAnimInstance::UpdateAnimationProperties()
+void UEnemyAnimInstance::UpdateAnimationProperties(float DeltaTime)
 {
 	if (Enemy == nullptr)
 	{
@@ -26,5 +28,11 @@ void UEnemyAnimInstance::UpdateAnimationProperties()
 		FVector Speed = Pawn->GetVelocity();
 		FVector LateralSpeed = FVector(Speed.X, Speed.Y, 0.f);
 		MoveSpeed = LateralSpeed.Size();
+
+		Direction = CalculateDirection(Speed, Pawn->GetActorRotation());
+
+		 
 	}
 }
+
+

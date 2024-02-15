@@ -20,10 +20,13 @@ public:
 	virtual void NativeInitializeAnimation() override;
 
 	UFUNCTION(BlueprintCallable, Category = AnimationProperties)
-	void UpdateAnimationProperties();
+	void UpdateAnimationProperties(float DeltaTime);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
 	float MoveSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
+	float Direction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
 	class APawn* Pawn;
@@ -31,7 +34,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
 	class AEnemyAI* Enemy;
 
+	
 
 
 private:
+	FRotator RotationLastFrame;
+	FRotator CurrentRotation;
+	FRotator DeltaRotation;
+
+	
 };

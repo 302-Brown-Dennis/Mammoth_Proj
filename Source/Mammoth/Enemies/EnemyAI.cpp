@@ -261,13 +261,14 @@ void AEnemyAI::MoveToTarget(APlayerCharacter_cpp* Target)
 	{
 		SetEnemyMovementStatus(EEnemyMovementState::EMS_MoveToTarget);
 		//UE_LOG(LogTemp, Warning, TEXT("Moving to Target!"));
+		
+		
 		PlayerTarget = Target;
 		FAIMoveRequest MoveRequest;
 		MoveRequest.SetGoalActor(PlayerTarget);
 		MoveRequest.SetAcceptanceRadius(MoveAcceptanceDistance);
 
 		FNavPathSharedPtr NavPath;
-
 		AIController->MoveTo(MoveRequest, &NavPath);
 	}
 	
