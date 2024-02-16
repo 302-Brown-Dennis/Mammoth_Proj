@@ -53,3 +53,12 @@ bool AMammothPlayerState::GetPlayerIsReady() const
 {
 	return bPlayerReady;
 }
+float AMammothPlayerState::GetPlayerHealth(APlayerCharacter_cpp* CurrentCharacter)
+{
+	if (CurrentCharacter)
+	{
+		return CurrentCharacter->GetHealth();
+	}
+
+	return 0.0f;
+}

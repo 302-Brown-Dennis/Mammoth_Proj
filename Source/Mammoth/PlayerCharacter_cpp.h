@@ -63,6 +63,8 @@ public:
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
 
+	FORCEINLINE float GetHealth() const { return Health; }
+
 	UFUNCTION()
 	void OnRep_UpdatePlayersReady();
 

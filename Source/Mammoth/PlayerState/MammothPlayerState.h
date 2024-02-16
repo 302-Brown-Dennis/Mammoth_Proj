@@ -28,6 +28,9 @@ public:
 
 	bool bPlayerReady = false;
 
+	UFUNCTION(BlueprintCallable, Category = PlayersHealth)
+	float GetPlayerHealth(class APlayerCharacter_cpp* CurrentCharacter);
+
 private:
 	UPROPERTY()
 	class APlayerCharacter_cpp* Character;
