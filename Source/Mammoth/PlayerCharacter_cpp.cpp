@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Main player class
+// Author: All
 
 
 #include "PlayerCharacter_cpp.h"
@@ -13,22 +14,29 @@
 #include "Mammoth/GameModes/LobbyGameMode.h"
 #include "Mammoth/GameState/MammothGameState.h"
 #include "Mammoth/PlayerState/MammothPlayerState.h"
+#include "Mammoth/PlayerController/MammothPlayerController.h"
+#include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 APlayerCharacter_cpp::APlayerCharacter_cpp()
 {
-	
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
-	bReplicates = true;
+
 	NumOfPlayersReady = 0;
-	bAlwaysRelevant = true;
+
+
+
+	bIsSprinting = false;
+	MaxStamina = 100.f;
+	Stamina = MaxStamina;
 	//UE_LOG(LogTemp, Warning, TEXT("Character Constructor called!!"));
-	
-	// Accses our online sub system, Steam in this case
+
+	// Accses steam online sub-system and check if valid
 	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
-	// Check if sub system is valid
 	if (OnlineSubsystem)
 	{
 		OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
@@ -39,15 +47,20 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 		}
 	}
 
-	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
-	OverHeadWidget->SetupAttachment(RootComponent);
 
-
+	/*
+	* Multiplayer settings stuff
+	*/
+	// Net update frequency
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 
-	//Missions = CreateDefaultSubobject<UMissionComponents>(TEXT("MissionComponents"));
-	//Missions->SetIsReplicated(true);
+	bReplicates = true;
+	bAlwaysRelevant = true;
+	// Testing widget for displaying players role on server
+	// Can be toggled in WPB_OverHeadWidget Blueprint
+	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
+	OverHeadWidget->SetupAttachment(RootComponent);
 
 }
 
@@ -67,6 +80,12 @@ void APlayerCharacter_cpp::BeginPlay()
 
 		}
 	}
+	UpdateHUDHealth();
+	UpdateHUDStamina();
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &APlayerCharacter_cpp::ReceiveDamage);
+	}
 }
 
 void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -76,6 +95,12 @@ void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME_CONDITION(APlayerCharacter_cpp, UseableItems, COND_OwnerOnly);
 	DOREPLIFETIME(APlayerCharacter_cpp, MatchState);
 	DOREPLIFETIME(APlayerCharacter_cpp, NumOfPlayersReady);
+	DOREPLIFETIME(APlayerCharacter_cpp, Health);
+	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
+	//UE_LOG(LogTemp, Warning, TEXT("Character begin play!"));
+
+	//for player health and stamina
+
 }
 
 // Called every frame
@@ -84,6 +109,18 @@ void APlayerCharacter_cpp::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Character tick!"));
+
+	//Sprinting Functionality
+	/*
+	if (bIsSprinting) {
+		Stamina -= StaminaDrainRate * DeltaTime;
+	}
+	else {
+		Stamina += StaminaRegenRate * DeltaTime;
+	}
+
+	Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
+	*/
 }
 
 // Called to bind functionality to input
@@ -92,8 +129,11 @@ void APlayerCharacter_cpp::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &APlayerCharacter_cpp::UseKeyPressed);
-
+	// Sprint functionality 
+	//PlayerInputComponent->BindAction("SprintButton", IE_Pressed, this, &APlayerCharacter_cpp::StartSprint);
+	//PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter_cpp::StopSprint);
 }
+
 
 void APlayerCharacter_cpp::PostInitializeComponents()
 {
@@ -106,8 +146,8 @@ void APlayerCharacter_cpp::PostInitializeComponents()
 
 void APlayerCharacter_cpp::PlayerHasReadyUp()
 {
-	GetReadyAmount();
-	
+
+
 }
 void APlayerCharacter_cpp::GetReadyAmount_Implementation()
 {
@@ -147,8 +187,9 @@ void APlayerCharacter_cpp::OnRep_UseableItems(AUseableItems* LastObject)
 
 void APlayerCharacter_cpp::UseKeyPressed()
 {
+
 	if (MissionBoardWidget == nullptr) return;
-	
+
 	if (MissionBoard == nullptr && UseableItems)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Menu key pressed! Creating Widget!!"));
@@ -158,9 +199,9 @@ void APlayerCharacter_cpp::UseKeyPressed()
 	{
 		MissionBoard->MenuSetup();
 	}
-		
-		//Missions->ShowMissionBoardWidget();
-	
+
+	//Missions->ShowMissionBoardWidget();
+
 }
 void APlayerCharacter_cpp::OnMatchStateSet(FName State)
 {
@@ -188,7 +229,7 @@ void APlayerCharacter_cpp::Server_SetPlayerIsReady_Implementation()
 			//UE_LOG(LogTemp, Warning, TEXT("CALLING CHECK PLAYERS"));
 			// Server checks all player states
 			LobbyGameMode->CheckPlayersReady();
-		}					
+		}
 	}
 }
 void APlayerCharacter_cpp::OnRep_UpdatePlayersReady()
@@ -196,7 +237,7 @@ void APlayerCharacter_cpp::OnRep_UpdatePlayersReady()
 	UE_LOG(LogTemp, Warning, TEXT("BEFORE MULTICAST PLAYERS READY IS: %d"), NumOfPlayersReady);
 	Multicast_UpdatePlayersReady();
 	UE_LOG(LogTemp, Warning, TEXT("AFTERRRR MULTICAST PLAYERS READY IS: %d"), NumOfPlayersReady);
-	
+
 }
 void APlayerCharacter_cpp::Multicast_UpdatePlayersReady_Implementation()
 {
@@ -206,11 +247,11 @@ void APlayerCharacter_cpp::Multicast_UpdatePlayersReady_Implementation()
 }
 void APlayerCharacter_cpp::Server_UpdatePlayersReady_Implementation()
 {
-	
-		UE_LOG(LogTemp, Warning, TEXT("IN SERVER FUNC AND HAS AUTHORITY!!!!!"));
-		//NumOfPlayersReady++;
-		OnRep_UpdatePlayersReady();
-	
+
+	UE_LOG(LogTemp, Warning, TEXT("IN SERVER FUNC AND HAS AUTHORITY!!!!!"));
+	//NumOfPlayersReady++;
+	OnRep_UpdatePlayersReady();
+
 	//Multicast_UpdatePlayersReady();
 }
 void APlayerCharacter_cpp::UpdatePlayerReady()
@@ -222,6 +263,93 @@ void APlayerCharacter_cpp::UpdatePlayerReady()
 void APlayerCharacter_cpp::OnRep_MatchState()
 {
 }
+//Player Health Rep Function
+void APlayerCharacter_cpp::OnRep_Health(float LastHealth)
+{
+	UpdateHUDHealth();
+}
+void APlayerCharacter_cpp::UpdateHUDHealth() {
+	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
+}
+//Player Stamina Rep Function
+void APlayerCharacter_cpp::OnRep_Stamina()
+{
+	UpdateHUDStamina();
+}
+void APlayerCharacter_cpp::UpdateHUDStamina() {
+	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
+	}
+}
+void APlayerCharacter_cpp::UpdateHUDAmmo(int32 Ammo)
+{
+	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDAmmo(Ammo);
+	}
+}
+// Following Functions implemented for Stamina/Sprinting
 
+void APlayerCharacter_cpp::StartSprint()
+{
 
+	SetSprinting(true);
+}
 
+void APlayerCharacter_cpp::DrainStamina()
+{
+	Stamina = FMath::Max(Stamina - StaminaDrainRate, 0.0f);
+	UpdateHUDStamina();
+	if (Stamina <= 0.0f)
+	{
+		GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
+		// Player is out of stamina, stop running
+		SetSprinting(false);
+		//UE_LOG(LogTemp, Warning, TEXT("DrainStamina SetSprinting False"));
+	}
+}
+void APlayerCharacter_cpp::RegenStamina()
+{
+	if ((bIsSprinting == false) && (Stamina <= 100.0f)) {
+		Stamina = FMath::Min(Stamina + StaminaRegenRate, MaxStamina);
+		UpdateHUDStamina();
+		//UE_LOG(LogTemp, Warning, TEXT("RegenStam Activated"));
+	}
+}
+void APlayerCharacter_cpp::StopSprint()
+{
+	SetSprinting(false);
+}
+void APlayerCharacter_cpp::SetSprinting(bool bNewSprintState)
+{
+	if (bIsSprinting != bNewSprintState)
+	{
+		bIsSprinting = bNewSprintState;
+		OnSprintStateChangeBPEvent(bIsSprinting);
+		if (bIsSprinting)
+		{
+			GetWorldTimerManager().SetTimer(StaminaDrainTimer, this, &APlayerCharacter_cpp::DrainStamina, 1.0f, true);
+			GetWorldTimerManager().ClearTimer(StaminaRegenTimer);
+		}
+		else
+		{
+			GetWorldTimerManager().SetTimer(StaminaRegenTimer, this, &APlayerCharacter_cpp::RegenStamina, 1.0f, true);
+			GetWorldTimerManager().ClearTimer(StaminaDrainTimer);
+			//notifiy
+		}
+	}
+}
+void APlayerCharacter_cpp::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)
+{
+	float DamageToHealth = Damage;
+	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
+	if (HasAuthority())
+	{
+		UpdateHUDHealth();
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("MY health is!: %f"), Health);
+}
