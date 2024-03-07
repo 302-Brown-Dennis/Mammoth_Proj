@@ -11,13 +11,14 @@
 UENUM(BlueprintType)
 enum class EEnemyMovementState :uint8
 {
-	EMS_Idle			UMETA(DeplayName = "Idle"),
-	EMS_MoveToTarget	UMETA(DeplayName = "MoveToTarget"),
-	EMS_Attacking		UMETA(DeplayName = "Attacking"),
-	EMS_Dead			UMETA(DeplayName = "Dead"),
-	EMS_Alive			UMETA(DeplayName = "Alive"),
+	EMS_Idle			UMETA(DisplayName = "Idle"),
+	EMS_MoveToTarget	UMETA(DisplayName = "MoveToTarget"),
+	EMS_Attacking		UMETA(DisplayName = "Attacking"),
+	EMS_Dead			UMETA(DisplayName = "Dead"),
+	EMS_Alive			UMETA(DisplayName = "Alive"),
+	EMS_Test			UMETA(DisplayName = "Test"),
 
-	EMS_MAX				UMETA(DeplayName = "DefaultMAX")
+	EMS_MAX				UMETA(DisplayName = "DefaultMAX")
 };
 
 UCLASS()
@@ -26,8 +27,14 @@ class MAMMOTH_API AEnemyAI : public ACharacter
 	GENERATED_BODY()
 
 public:
+
 	// Sets default values for this character's properties
 	AEnemyAI();
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -132,65 +139,47 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	class AAIController* AIController;
 
-
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-	virtual void OnMovementStateSet();
-	UFUNCTION()
-	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, 
-		class AController* InstigatorController, AActor* DamageCauser);
-	
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	// CombatCollisionFunctions
-	#pragma region CombatCollisionFunctions
+#pragma region CombatCollisionFunctions
 	UFUNCTION()
-	virtual void AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
-
-	UFUNCTION()
-	virtual void AgroSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION()
-	virtual void CombatSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
-
-	UFUNCTION()
-	virtual void CombatSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION()
-	void AttackHitBoxOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+	virtual void AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void AttackHitBoxOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+	virtual void AgroSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-	
+
+	UFUNCTION()
+	virtual void CombatSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	virtual void CombatSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void AttackHitBoxOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void AttackHitBoxOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	UFUNCTION(BlueprintCallable)
 	void ActivateAttackHitBoxCollision();
 
 	UFUNCTION(BlueprintCallable)
 	void DeactivateAttackHitBoxCollision();
-	#pragma endregion
+#pragma endregion
 
 	UFUNCTION(BlueprintCallable)
-	void MoveToTarget(class APlayerCharacter_cpp* Target);
+	void MoveToTarget(APlayerCharacter_cpp* Target);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
 	bool bOverLappingCombatSphere;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
-	APlayerCharacter_cpp* PlayerTarget = nullptr;
+	class APlayerCharacter_cpp* PlayerTarget = nullptr;
 
 
 	// TESTTTT
@@ -198,7 +187,7 @@ public:
 	class UEnemyHealthBarOverlay* HealthBarComponent;
 
 	bool bAttacking = false;
-	
+
 	FORCEINLINE bool IsAttacking() const { return bAttacking; }
 
 	UFUNCTION(Server, Reliable)
@@ -211,7 +200,7 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_MovementStateChanged, VisibleAnywhere, Category = "AI")
 	EEnemyMovementState MovementState;
-	
+
 	UPROPERTY()
 	class AEnemyAIController* TAIController;
 
@@ -221,18 +210,35 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttackEnd();
 
+	// return player char
+	UFUNCTION(BlueprintCallable, Category = "AI Targeting")
+	APlayerCharacter_cpp* GetPlayerTarget();
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayAttackMontage();
 
+	/*
+	* Health bar functionality
+	*/
 	UFUNCTION(NetMulticast, Reliable)
 	void UpdateHealthBarVisibilty();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastUpdateEnemyHealthBar();
+
+	void UpdateEnemyHealthBar();
+	//
+
 
 	void PlayHitReactMontage();
 
 	void PlayBlood();
 
 	UFUNCTION(Server, Reliable)
-	void Server_Die();
+	void ServerOnDeathMontage();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastOnDeathMontage();
 
 	UFUNCTION(BlueprintCallable)
 	void OnDeath();
@@ -251,10 +257,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetEnemyMaxHealth() const;
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastUpdateEnemyHealthBar();
 
-	void UpdateEnemyHealthBar();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayBloodEffects();
@@ -269,14 +272,24 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool bHasPlayerTarget();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "AISpawn")
+	void OnEnemySpawned(bool bEnemyWasSpawned);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "AI")
+	void EventOnEnemyDeath();
+
+
+protected:
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+	virtual void OnMovementStateSet();
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, 
+		class AController* InstigatorController, AActor* DamageCauser);
 	
 private:
-	bool bHasOverlappedAgroSphere = false;
-	bool bWasAttacked = false;
-	bool bWasSpawned = false;
-private:
-	//UPROPERTY(EditAnywhere, Category = "UI")
-	//TSubclassOf<class UUserWidget> EnemyHealthBarOverlayWidget;
 
 	UPROPERTY()
 	class UEnemyHealthBarOverlay* EnemyHealthBarOverlayclass;
@@ -285,7 +298,9 @@ private:
 	class UWidgetComponent* EnemyHealthBarOverlay;
 
 	FVector BulletHitLocation;
-
+	bool bHasOverlappedAgroSphere = false;
+	bool bWasAttacked = false;
+	bool bWasSpawned = false;
 	
 
 };
