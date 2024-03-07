@@ -4,8 +4,6 @@
 
 #include "MammothPlayerState.h"
 #include "Mammoth/PlayerCharacter_cpp.h"
-#include "GameFramework/PlayerController.h"
-#include "Mammoth/PlayerController/MammothPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 AMammothPlayerState::AMammothPlayerState()
@@ -43,7 +41,7 @@ void AMammothPlayerState::SetPlayerIsReady()
 		Character->Server_SetPlayerIsReady();
 		//Character->PlayerHasReadyUp();
 	}
-	
+
 }
 
 void AMammothPlayerState::Server_SetPlayerRead_Implementation(bool bNewReadyState)
@@ -55,9 +53,9 @@ bool AMammothPlayerState::GetPlayerIsReady() const
 {
 	return bPlayerReady;
 }
-float AMammothPlayerState::GetPlayerHealth()
+
+float AMammothPlayerState::GetPlayerHealth() 
 {
-	
 	APlayerCharacter_cpp* PlayerCharacter = Cast <APlayerCharacter_cpp>(GetPawn());
 	if (!PlayerCharacter)
 	{
@@ -65,7 +63,7 @@ float AMammothPlayerState::GetPlayerHealth()
 		// PlayerPawn is invalid
 		return 0.0f;
 	}
-	
+
 
 	// Retrieve health
 	float Health = PlayerCharacter->GetHealth();
