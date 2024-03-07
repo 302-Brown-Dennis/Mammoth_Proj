@@ -23,8 +23,6 @@ public:
 	//Daniel M Added 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	FORCEINLINE float GetHealth() const { return Health; }
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
