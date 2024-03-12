@@ -53,12 +53,19 @@ bool AMammothPlayerState::GetPlayerIsReady() const
 {
 	return bPlayerReady;
 }
-float AMammothPlayerState::GetPlayerHealth(APlayerCharacter_cpp* CurrentCharacter)
+
+float AMammothPlayerState::GetPlayerHealth() 
 {
-	if (CurrentCharacter)
+	APlayerCharacter_cpp* PlayerCharacter = Cast <APlayerCharacter_cpp>(GetPawn());
+	if (!PlayerCharacter)
 	{
-		return CurrentCharacter->GetHealth();
+		UE_LOG(LogTemp, Warning, TEXT("failed to get character"));
+		// PlayerPawn is invalid
+		return 0.0f;
 	}
 
-	return 0.0f;
+
+	// Retrieve health
+	float Health = PlayerCharacter->GetHealth();
+	return Health;
 }

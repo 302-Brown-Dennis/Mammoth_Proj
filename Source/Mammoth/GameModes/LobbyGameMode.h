@@ -21,6 +21,8 @@ public:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelName")
+	FString LevelName;
 	
 	void CheckPlayersReady();
 

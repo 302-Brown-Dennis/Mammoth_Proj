@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerState.h"
 #include "Mammoth/PlayerCharacter_cpp.h"
 #include "GameFramework/PlayerController.h"
+#include "Mammoth/PlayerController/MammothPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 namespace MatchState
@@ -16,7 +17,13 @@ namespace MatchState
 
 ALevelsGameMode::ALevelsGameMode()
 {
+	PlayerControllerClass = AMammothPlayerController::StaticClass();
 	bDelayedStart = false;
+}
+void ALevelsGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
 }
 void ALevelsGameMode::BeginPlay()
 {
@@ -54,6 +61,15 @@ void ALevelsGameMode::OnMatchStateSet()
 void ALevelsGameMode::Server_GetServerTime_Implementation()
 {
 	FDateTime ServerTime = FDateTime::Now();
+}
+
+void ALevelsGameMode::LobbyServerTravel()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->ServerTravel(FString("/Game/Levels/") + LobbyName + ("?listen"));
+	}
 }
 
 

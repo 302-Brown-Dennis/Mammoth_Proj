@@ -74,7 +74,8 @@ void AEnemyTriggerVolume::ServerSpawnEnemy_Implementation(const FVector& SpawnLo
     if (NewEnemy)
     {
         NewEnemy->SetWasSpawned();
-        NewEnemy->MoveToTarget(Target);
+        //NewEnemy->MoveToTarget(Target);
+        NewEnemy->PlayerTarget = Target;
     }
 
 
