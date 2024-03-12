@@ -18,6 +18,7 @@ class MAMMOTH_API AMammothPlayerController : public APlayerController
 public:
 	void SetHUDHealth(float Health, float MaxHealth);
 	void SetHUDStamina(float Stamina, float MaxStamina);
+	void SetHUDAmmo(int32 Ammo);
 	
 protected:
 	virtual void BeginPlay() override;

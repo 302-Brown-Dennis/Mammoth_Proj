@@ -28,10 +28,14 @@ public:
 
 	bool bPlayerReady = false;
 
+	UFUNCTION(BlueprintCallable, Category = PlayersHealth)
+	float GetPlayerHealth();
+
 private:
 	UPROPERTY()
 	class APlayerCharacter_cpp* Character;
 
-	
+	UPROPERTY()
+	class AMammothPlayerController* MammothPlayerController;
 	
 };

@@ -285,9 +285,12 @@ void APlayerCharacter_cpp::UpdateHUDStamina() {
 		MammothPlayerController->SetHUDStamina(Stamina, MaxStamina);
 	}
 }
-void APlayerCharacter_cpp::UpdateHUDAmmo()
+void APlayerCharacter_cpp::UpdateHUDAmmo(int32 Ammo)
 {
-
+	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+	if (MammothPlayerController) {
+		MammothPlayerController->SetHUDAmmo(Ammo);
+	}
 }
 // Following Functions implemented for Stamina/Sprinting
 

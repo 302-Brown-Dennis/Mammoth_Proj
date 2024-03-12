@@ -91,7 +91,12 @@ void ALobbyGameMode::CallServerTravel()
 	UWorld* World = GetWorld();
 	if (World)
 	{
-		World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
+		//bUseSeamlessTravel = true;
+		//UE_LOG(LogTemp, Warning, TEXT("Level Name: %s"), *LevelName);
+		//UE_LOG(LogTemp, Warning, TEXT("/Game/Levels/%s"), *LevelName, TEXT("?listen"));
+
+		//World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
+		World->ServerTravel(FString("/Game/Levels/") + LevelName + ("?listen"));
 	}
 }
 

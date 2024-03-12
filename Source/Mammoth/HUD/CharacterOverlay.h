@@ -26,4 +26,7 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* WeaponIcon;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* AmmoText;
 };

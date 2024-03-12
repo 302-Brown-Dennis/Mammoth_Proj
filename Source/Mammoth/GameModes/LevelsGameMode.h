@@ -21,9 +21,16 @@ public:
 	ALevelsGameMode();
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 	UFUNCTION(Server, Reliable)
 	void Server_GetServerTime();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "mServer")
+	FString LobbyName;
+
+	UFUNCTION(BlueprintCallable)
+	void LobbyServerTravel();
 
 	UPROPERTY(EditDefaultsOnly)
 	float CooldownTime = 30.f;

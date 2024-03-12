@@ -57,11 +57,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
 	float MaxHealth = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, BlueprintReadOnly, Category = "Player Stats")
 	float Health = 100.f;
 
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
+
+	FORCEINLINE float GetHealth() const { return Health; }
 
 	UFUNCTION()
 	void OnRep_UpdatePlayersReady();
@@ -90,7 +92,7 @@ public:
 	void UpdatePlayerReady();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateHUDAmmo();
+	void UpdateHUDAmmo(int32 Ammo);
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 
