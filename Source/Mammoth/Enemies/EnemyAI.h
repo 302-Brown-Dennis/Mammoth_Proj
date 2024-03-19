@@ -268,6 +268,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetWasSpawned();
 
+	UFUNCTION(BlueprintCallable)
 	void SetWasSpawned();
 
 	UFUNCTION(BlueprintCallable)
