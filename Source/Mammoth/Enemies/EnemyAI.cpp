@@ -174,6 +174,9 @@ void AEnemyAI::AttackHitBoxOnOverlapBegin(UPrimitiveComponent* OverlappedCompone
 		if (PlayerCharacter)
 		{
 			FVector HitLocation = SweepResult.Location;
+			
+			//UE_LOG(LogTemp, Warning, TEXT("Vector components: X=%f, Y=%f, Z=%f"), HitLocation.X, HitLocation.Y, HitLocation.Z);
+
 			//UE_LOG(LogTemp, Warning, TEXT("FOUND Player char!"));
 			
 			// if (PlayerCharacter->HitEffects)
