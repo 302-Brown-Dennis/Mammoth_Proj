@@ -18,7 +18,7 @@ namespace MatchState
 ALevelsGameMode::ALevelsGameMode()
 {
 	PlayerControllerClass = AMammothPlayerController::StaticClass();
-	bDelayedStart = false;
+	bDelayedStart = true;
 }
 void ALevelsGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -37,7 +37,8 @@ void ALevelsGameMode::Tick(float DeltaTime)
 
 	if (MatchState == MatchState::WaitingToStart)
 	{
-		CountdownTime = GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		CountdownTime = WarmUpTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		//CountdownTime = LevelStartingTime - GetWorld()->GetTimeSeconds();
 		if (CountdownTime <= 0.f)
 		{
 			StartMatch();
@@ -50,10 +51,10 @@ void ALevelsGameMode::OnMatchStateSet()
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
-		APlayerCharacter_cpp* PlayerCharacter = Cast<APlayerCharacter_cpp>(*It);
-		if (PlayerCharacter)
+		AMammothPlayerController* MammothPlayerController = Cast<AMammothPlayerController>(*It);
+		if (MammothPlayerController)
 		{
-			PlayerCharacter->OnMatchStateSet(MatchState);
+			MammothPlayerController->OnMatchStateSet(MatchState);
 		}
 	}
 	

@@ -44,19 +44,7 @@ void AProjectiles::BeginPlay()
 void AProjectiles::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	
-	AEnemyAI* OwnerEnemy = Cast<AEnemyAI>(OtherActor);
-	if (OwnerEnemy)
-	{
-		AController* OwnerController = OwnerEnemy->GetController();
-		OwnerEnemy->SetBulletHitlocation(Hit.ImpactPoint);
-		OwnerEnemy->PlayerTarget = PlayerCharacter;
-		OwnerEnemy->MoveToTarget(PlayerCharacter);
-		if (OwnerController)
-		{
-			UGameplayStatics::ApplyDamage(OtherActor, Damage, OwnerController, this, UDamageType::StaticClass());
-		}
-	}
-	Destroy();
+	
 }
 
 void AProjectiles::Tick(float DeltaTime)
@@ -67,14 +55,6 @@ void AProjectiles::Tick(float DeltaTime)
 
 void AProjectiles::SetOwningPlayer(APlayerCharacter_cpp* OwningPlayer)
 {
-	PlayerCharacter = OwningPlayer;
-	if (PlayerCharacter)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FOUND PLAYER CHARACTER!!!"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FAILED TO GET PLAYER CHARACTER!!!"));
-	}
+	
 }
 
