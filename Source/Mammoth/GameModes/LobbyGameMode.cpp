@@ -15,7 +15,20 @@ ALobbyGameMode::ALobbyGameMode()
 {
 
 }
+void ALobbyGameMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		CountdownTime = WarmUpTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		//CountdownTime = LevelStartingTime - GetWorld()->GetTimeSeconds();
+		if (CountdownTime <= 0.f)
+		{
+			StartMatch();
+		}
+	}
+}
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
 

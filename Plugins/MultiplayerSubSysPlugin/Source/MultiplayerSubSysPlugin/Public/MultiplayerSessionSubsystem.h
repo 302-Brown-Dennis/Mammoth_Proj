@@ -9,6 +9,8 @@
 
 #include "MultiplayerSessionSubsystem.generated.h"
 
+//DECLARE_LOG_CATEGORY_EXTERN(LogMultiplayerSystem, Log, All);
+
 // Custom delegates for menu class to bind callbacks
 // Dynamic delegate can be seralized and saved or loaded from a blueprint called"Even Dispatcher"
 // ANY FUNCTIONS BOUND TO DYNAMIC DELEGATES MUST BE UFUNCTIONS

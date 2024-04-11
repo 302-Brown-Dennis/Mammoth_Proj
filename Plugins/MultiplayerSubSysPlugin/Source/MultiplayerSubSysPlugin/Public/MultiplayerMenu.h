@@ -8,6 +8,8 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "MultiplayerMenu.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogMultiplayerSystem, Log, All);
+
 /**
  * 
  */

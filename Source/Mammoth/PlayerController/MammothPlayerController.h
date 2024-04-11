@@ -23,6 +23,10 @@ public:
 	void OnMatchStateSet(FName State);
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnPossess(APawn* InPawn) override;
+	UFUNCTION(BlueprintCallable)
+	void InitHUD();
+	UFUNCTION(BlueprintCallable)
+	void ClearOverlay();
 protected:
 	virtual void BeginPlay() override;
 	void PollInit();
@@ -31,15 +35,16 @@ protected:
 private:
 	UPROPERTY()
 	class AMammothHUD* MammothHUD;
-
+	UPROPERTY()
+	class APlayerCharacter_cpp* PlayerCharacter;
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName MatchState;
 
 	UFUNCTION()
 	void OnRep_MatchState();
 
-	UPROPERTY()
-	class UCharacterOverlay* CharacterOverlay;
+	UPROPERTY(VisibleAnywhere)
+	class UCharacterOverlay* CharacterOverlayRef;
 	bool bInitHealth = false;
 	bool bInitStamina = false;
 	bool bInitAmmo = false;

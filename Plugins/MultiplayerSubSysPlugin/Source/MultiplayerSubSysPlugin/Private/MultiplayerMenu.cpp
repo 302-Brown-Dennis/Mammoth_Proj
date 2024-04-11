@@ -7,6 +7,7 @@
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 
+DEFINE_LOG_CATEGORY(LogMultiplayerSystem);
 
 // Calls the MenuSetup blueprintableCallable function, saves path to hub/lobby, max num of public connections, match type
 // Gets player controller, displays menu set input mode to UI only!
@@ -36,11 +37,9 @@ void UMultiplayerMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeMa
 			PlayerController->SetInputMode(InputModeData);
 			PlayerController->SetShowMouseCursor(true);
 		}
-		else {
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Failed!")));
-			}
+		else 
+		{
+			UE_LOG(LogMultiplayerSystem, Error, TEXT("Failed to get first player controller in Multiplayer Menu."));
 		}
 
 	}
@@ -114,10 +113,11 @@ void UMultiplayerMenu::OnCreateSession(bool bWasSuccessful)
 {
 	if (bWasSuccessful)
 	{
-		if (GEngine)
+		/*if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Session successfully created!")));
-		}
+		}*/
+		UE_LOG(LogMultiplayerSystem, Warning, TEXT("Session successfully created in Multiplayer Menu."));
 
 		UWorld* World = GetWorld();
 		if (World)
@@ -127,10 +127,11 @@ void UMultiplayerMenu::OnCreateSession(bool bWasSuccessful)
 	}
 	else
 	{
-		if (GEngine)
+		/*if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString(TEXT("Failed to create session!")));
-		}
+		}*/
+		UE_LOG(LogMultiplayerSystem, Error, TEXT("Failed to create session in Multiplayer Menu."));
 		HostButton->SetIsEnabled(true);
 	}
 }

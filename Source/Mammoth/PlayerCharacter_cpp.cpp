@@ -27,13 +27,10 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	NumOfPlayersReady = 0;
-	
-
 
 	bIsSprinting = false;
 	MaxStamina = 100.f;
 	Stamina = MaxStamina;
-	//UE_LOG(LogTemp, Warning, TEXT("Character Constructor called!!"));
 	
 	// Accses steam online sub-system and check if valid
 	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
@@ -41,22 +38,24 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 	{
 		OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
 
-		if (GEngine)
+		/*if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("Found SubSystem %s"), *OnlineSubsystem->GetSubsystemName().ToString()));
-		}
+		}*/
 	}
 
 	
-	/*
-	* Multiplayer settings stuff
-	*/
+	
 	// Net update frequency
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 
-	bReplicates = true;
-	bAlwaysRelevant = true;
+
+	// Commented out on 4/9/24
+	//bReplicates = true;
+	//bAlwaysRelevant = true;
+
+
 	// Testing widget for displaying players role on server
 	// Can be toggled in WPB_OverHeadWidget Blueprint
 	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
@@ -81,8 +80,8 @@ void APlayerCharacter_cpp::BeginPlay()
 		}
 	}
 	;*/
-	UpdateHUDHealth();
-	UpdateHUDStamina();
+	//UpdateHUDHealth();
+	//UpdateHUDStamina();
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &APlayerCharacter_cpp::ReceiveDamage);
@@ -107,20 +106,8 @@ void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 void APlayerCharacter_cpp::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	PollInit();
-	//UE_LOG(LogTemp, Warning, TEXT("Character tick!"));
+	//PollInit();
 
-	//Sprinting Functionality
-	/*
-	if (bIsSprinting) {
-		Stamina -= StaminaDrainRate * DeltaTime;
-	}
-	else {
-		Stamina += StaminaRegenRate * DeltaTime;
-	}
-
-	Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
-	*/
 }
 
 // Called to bind functionality to input
@@ -204,6 +191,7 @@ void APlayerCharacter_cpp::UseKeyPressed()
 	
 }
 
+// Unused
 void APlayerCharacter_cpp::PollInit()
 {
 	if (MammothPlayerController == nullptr)

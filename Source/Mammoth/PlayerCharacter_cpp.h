@@ -162,6 +162,6 @@ private:
 	UFUNCTION()
 	void OnRep_Stamina();
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	class AMammothPlayerController* MammothPlayerController;
 };
