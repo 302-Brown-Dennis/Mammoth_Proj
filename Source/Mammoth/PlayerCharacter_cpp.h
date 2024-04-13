@@ -23,8 +23,6 @@ public:
 	//Daniel M Added 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	FORCEINLINE float GetHealth() const { return Health; }
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -65,6 +63,8 @@ public:
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
 
+	FORCEINLINE float GetHealth() const { return Health; }
+
 	UFUNCTION()
 	void OnRep_UpdatePlayersReady();
 
@@ -90,6 +90,9 @@ public:
 	void Multicast_UpdatePlayersReady();
 
 	void UpdatePlayerReady();
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateHUDAmmo(int32 Ammo);
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 

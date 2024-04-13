@@ -35,6 +35,7 @@ private:
 	UPROPERTY()
 	class APlayerCharacter_cpp* Character;
 
-	
+	UPROPERTY()
+	class AMammothPlayerController* MammothPlayerController;
 	
 };
