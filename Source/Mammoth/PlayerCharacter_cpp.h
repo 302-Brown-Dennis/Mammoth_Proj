@@ -54,12 +54,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StopSprint();
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
-	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	//UPROPERTY(EditAnywhere, Category = "Player Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
 	float MaxHealth = 100.f;
 
-	//UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, BlueprintReadOnly, Category = "Player Stats")
-	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	//UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	UPROPERTY(ReplicatedUsing = OnRep_Health, EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
 	float Health = 100.f;
 
 	UFUNCTION()
@@ -80,6 +80,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "My Character")
 	void OnSprintStateChangeBPEvent(bool bNewValue);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "My Character")
+	void OnDownBPEvent();
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetPlayerIsReady();
