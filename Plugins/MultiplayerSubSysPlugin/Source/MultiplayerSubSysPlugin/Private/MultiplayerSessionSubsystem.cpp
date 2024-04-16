@@ -5,6 +5,7 @@
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
 
+//DEFINE_LOG_CATEGORY(LogMultiplayerSystem);
 
 UMultiplayerSessionSubsystem::UMultiplayerSessionSubsystem():
 	// Bind delegates to callbacks
@@ -160,7 +161,6 @@ void UMultiplayerSessionSubsystem::OnFindSessionComplete(bool bWasSuccessful)
 		MultiplayerOnFindSessionComplete.Broadcast(TArray<FOnlineSessionSearchResult>(), false);
 		return;
 	}
-
 	MultiplayerOnFindSessionComplete.Broadcast(LastSessionSearch->SearchResults, bWasSuccessful);
 
 }
@@ -173,7 +173,6 @@ void UMultiplayerSessionSubsystem::OnJoinSessionComplete(FName SessionName, EOnJ
 		SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(FindSessionsCompleteDelegateHandle);
 		
 	}
-
 	MultiplayerOnJoinSessionComplete.Broadcast(Result);
 
 }

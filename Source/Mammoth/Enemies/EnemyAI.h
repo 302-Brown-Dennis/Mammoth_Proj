@@ -30,6 +30,7 @@ public:
 
 	// Sets default values for this character's properties
 	AEnemyAI();
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -44,10 +45,10 @@ public:
 	* 
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy Stats")
-	float EnemyMaxHealth = 100.f;
+	float EnemyMaxHealth = 5.0f;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EnemyHealth, VisibleAnywhere, Category = "Enemy Stats")
-	float EnemyHealth = 100.f;
+	float EnemyHealth = EnemyMaxHealth;
 
 	UFUNCTION()
 	void OnRep_EnemyHealth(float LastHealth);
@@ -57,29 +58,14 @@ public:
 	* Combat
 	* 
 	*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	class USphereComponent* AgroSphere;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	USphereComponent* CombatSphere;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TSubclassOf<UDamageType> DamageTypeClass;
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	class UBoxComponent* AttackHitBoxCollison;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	float MinAttackTime;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	float MaxAttackTime;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy Stats")
 	float EnemyDamage;
-
-	FTimerHandle AttackTimer;
 
 	FTimerHandle DeathTimer;
 
@@ -88,19 +74,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	float DeathDelay;
 
-	/*
-	* 
-	* Move,ent
-	* 
-	*/
+	
 	void SetEnemyMovementStatus(EEnemyMovementState State);
 
 	FORCEINLINE EEnemyMovementState GetEnemyMovementStatus() { return MovementState; }
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	float MoveAcceptanceDistance;
-
 	
+
 	/*
 	* 
 	* VFX
@@ -114,9 +93,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float HitSoundVolume;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	USoundCue* AttackSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	class UAnimMontage* CombatMontage;
@@ -139,23 +115,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	class AAIController* AIController;
 
-	// CombatCollisionFunctions
-#pragma region CombatCollisionFunctions
-	UFUNCTION()
-	virtual void AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	virtual void AgroSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION()
-	virtual void CombatSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	virtual void CombatSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
 	void AttackHitBoxOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -170,17 +129,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DeactivateAttackHitBoxCollision();
-#pragma endregion
-
-	UFUNCTION(BlueprintCallable)
-	void MoveToTarget(APlayerCharacter_cpp* Target);
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
-	bool bOverLappingCombatSphere;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
 	class APlayerCharacter_cpp* PlayerTarget = nullptr;
-
 
 	// TESTTTT
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
@@ -188,34 +139,18 @@ public:
 
 	bool bAttacking = false;
 
-	FORCEINLINE bool IsAttacking() const { return bAttacking; }
-
-	UFUNCTION(Server, Reliable)
-	void Server_Attack();
-
-	UFUNCTION()
-	void StartAttack();
-
 	void PlayDeathMontage();
 
 	UPROPERTY(ReplicatedUsing = OnRep_MovementStateChanged, VisibleAnywhere, Category = "AI")
 	EEnemyMovementState MovementState;
 
-	UPROPERTY()
-	class AEnemyAIController* TAIController;
-
 	UFUNCTION()
 	void OnRep_MovementStateChanged();
-
-	UFUNCTION(BlueprintCallable)
-	void AttackEnd();
 
 	// return player char
 	UFUNCTION(BlueprintCallable, Category = "AI Targeting")
 	APlayerCharacter_cpp* GetPlayerTarget();
 	
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastPlayAttackMontage();
 
 	/*
 	* Health bar functionality
@@ -227,8 +162,6 @@ public:
 	void MulticastUpdateEnemyHealthBar();
 
 	void UpdateEnemyHealthBar();
-	//
-
 
 	void PlayHitReactMontage();
 
@@ -257,8 +190,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetEnemyMaxHealth() const;
 
-
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayBloodEffects();
 
@@ -268,6 +199,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetWasSpawned();
 
+	UFUNCTION(BlueprintCallable)
 	void SetWasSpawned();
 
 	UFUNCTION(BlueprintCallable)
@@ -298,7 +230,6 @@ private:
 	class UWidgetComponent* EnemyHealthBarOverlay;
 
 	FVector BulletHitLocation;
-	bool bHasOverlappedAgroSphere = false;
 	bool bWasAttacked = false;
 	bool bWasSpawned = false;
 	

@@ -18,18 +18,26 @@ class MAMMOTH_API ALobbyGameMode : public AGameMode
 public:
 
 	ALobbyGameMode();
-
+	virtual void Tick(float DeltaTime) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelName")
 	FString LevelName;
 	
 	void CheckPlayersReady();
+	UPROPERTY(EditDefaultsOnly)
+	float CooldownTime = 30.f;
 
+	UPROPERTY(EditDefaultsOnly)
+	float WarmUpTime = 5.f;
+
+	float LevelStartingTime = 0.f;
 
 private:
 
 	int32 NumOfPlayers;
+
+	float CountdownTime = 0.f;
 
 	UPROPERTY()
 	class ALobbyGameMode* LobbyGameMode;

@@ -27,13 +27,10 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	NumOfPlayersReady = 0;
-	
-
 
 	bIsSprinting = false;
 	MaxStamina = 100.f;
 	Stamina = MaxStamina;
-	//UE_LOG(LogTemp, Warning, TEXT("Character Constructor called!!"));
 	
 	// Accses steam online sub-system and check if valid
 	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
@@ -41,22 +38,24 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 	{
 		OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
 
-		if (GEngine)
+		/*if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("Found SubSystem %s"), *OnlineSubsystem->GetSubsystemName().ToString()));
-		}
+		}*/
 	}
 
 	
-	/*
-	* Multiplayer settings stuff
-	*/
+	
 	// Net update frequency
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 
-	bReplicates = true;
-	bAlwaysRelevant = true;
+
+	// Commented out on 4/9/24
+	//bReplicates = true;
+	//bAlwaysRelevant = true;
+
+
 	// Testing widget for displaying players role on server
 	// Can be toggled in WPB_OverHeadWidget Blueprint
 	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
@@ -68,7 +67,7 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 void APlayerCharacter_cpp::BeginPlay()
 {
 	Super::BeginPlay();
-	UWorld* World = GetWorld();
+	/*UWorld* World = GetWorld();
 	if (World)
 	{
 		APlayerController* PlayerController = World->GetFirstPlayerController();
@@ -80,8 +79,9 @@ void APlayerCharacter_cpp::BeginPlay()
 
 		}
 	}
-	UpdateHUDHealth();
-	UpdateHUDStamina();
+	;*/
+	//UpdateHUDHealth();
+	//UpdateHUDStamina();
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &APlayerCharacter_cpp::ReceiveDamage);
@@ -93,7 +93,6 @@ void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(APlayerCharacter_cpp, UseableItems, COND_OwnerOnly);
-	DOREPLIFETIME(APlayerCharacter_cpp, MatchState);
 	DOREPLIFETIME(APlayerCharacter_cpp, NumOfPlayersReady);
     DOREPLIFETIME(APlayerCharacter_cpp, Health);
 	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
@@ -107,20 +106,8 @@ void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 void APlayerCharacter_cpp::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//PollInit();
 
-	//UE_LOG(LogTemp, Warning, TEXT("Character tick!"));
-
-	//Sprinting Functionality
-	/*
-	if (bIsSprinting) {
-		Stamina -= StaminaDrainRate * DeltaTime;
-	}
-	else {
-		Stamina += StaminaRegenRate * DeltaTime;
-	}
-
-	Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
-	*/
 }
 
 // Called to bind functionality to input
@@ -203,12 +190,28 @@ void APlayerCharacter_cpp::UseKeyPressed()
 		//Missions->ShowMissionBoardWidget();
 	
 }
-void APlayerCharacter_cpp::OnMatchStateSet(FName State)
+
+// Unused
+void APlayerCharacter_cpp::PollInit()
 {
-	//MatchState = State;
-}
-void APlayerCharacter_cpp::HandleCooldown()
-{
+	if (MammothPlayerController == nullptr)
+	{
+		if (GEngine)
+		{
+			//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Controller not valid!")));
+		}
+		MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+		if (MammothPlayerController)
+		{
+			if (GEngine)
+			{
+				//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Controller is now valid updating hud")));
+			}
+			UpdateHUDAmmo(30);
+			UpdateHUDHealth();
+			UpdateHUDStamina();
+		}
+	}
 }
 
 void APlayerCharacter_cpp::Server_SetPlayerIsReady_Implementation()
@@ -225,7 +228,7 @@ void APlayerCharacter_cpp::Server_SetPlayerIsReady_Implementation()
 		if (HasAuthority())
 		{
 			//Multicast_UpdatePlayersReady();
-			UE_LOG(LogTemp, Warning, TEXT("wadawdawd: %d"), NumOfPlayersReady);
+			UE_LOG(LogTemp, Warning, TEXT("Server Set play Is ready, calling lobby check players ready, num players ready: %d"), NumOfPlayersReady);
 			//UE_LOG(LogTemp, Warning, TEXT("CALLING CHECK PLAYERS"));
 			// Server checks all player states
 			LobbyGameMode->CheckPlayersReady();
@@ -260,9 +263,6 @@ void APlayerCharacter_cpp::UpdatePlayerReady()
 	Server_UpdatePlayersReady();
 }
 
-void APlayerCharacter_cpp::OnRep_MatchState()
-{
-}
 //Player Health Rep Function
 void APlayerCharacter_cpp::OnRep_Health(float LastHealth) 
 {
@@ -271,6 +271,10 @@ void APlayerCharacter_cpp::OnRep_Health(float LastHealth)
 void APlayerCharacter_cpp::UpdateHUDHealth() {
 	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
 	if (MammothPlayerController) {
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Updating Health!")));
+		}
 		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
 	}
 }
@@ -292,14 +296,16 @@ void APlayerCharacter_cpp::UpdateHUDAmmo(int32 Ammo)
 		MammothPlayerController->SetHUDAmmo(Ammo);
 	}
 }
-// Following Functions implemented for Stamina/Sprinting
 
+/*
+* 
+* Sprint Functions
+* 
+*/
 void APlayerCharacter_cpp::StartSprint() 
 {
-
 	SetSprinting(true);
 }
-
 void APlayerCharacter_cpp::DrainStamina()
 {
 	Stamina = FMath::Max(Stamina - StaminaDrainRate, 0.0f);
@@ -343,6 +349,8 @@ void APlayerCharacter_cpp::SetSprinting(bool bNewSprintState)
 		}
 	}
 }
+
+
 void APlayerCharacter_cpp::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)
 {
 	float DamageToHealth = Damage;
