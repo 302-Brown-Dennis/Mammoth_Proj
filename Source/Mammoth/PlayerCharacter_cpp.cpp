@@ -266,6 +266,10 @@ void APlayerCharacter_cpp::UpdatePlayerReady()
 //Player Health Rep Function
 void APlayerCharacter_cpp::OnRep_Health(float LastHealth) 
 {
+	if (Health <= 0.0)
+	{
+		OnDownBPEvent();
+	}
 	UpdateHUDHealth();
 }
 void APlayerCharacter_cpp::UpdateHUDHealth() {
@@ -357,6 +361,10 @@ void APlayerCharacter_cpp::ReceiveDamage(AActor* DamagedActor, float Damage, con
 	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
 	if (HasAuthority())
 	{
+		if (Health <= 0.0)
+		{
+			OnDownBPEvent();
+		}
 		UpdateHUDHealth();
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("MY health is!: %f"), Health);
