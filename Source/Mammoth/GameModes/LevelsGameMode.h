@@ -35,6 +35,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	float CooldownTime = 30.f;
 
+	UPROPERTY(EditDefaultsOnly)
+	float WarmUpTime = 5.f;
+
 	float LevelStartingTime = 0.f;
 
 private:

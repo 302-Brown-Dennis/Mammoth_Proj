@@ -8,7 +8,7 @@
 void AMammothHUD::BeginPlay() {
 	Super::BeginPlay();
 
-	AddCharacterOverlay();
+	//AddCharacterOverlay();
 }
 
 void AMammothHUD::AddCharacterOverlay() {

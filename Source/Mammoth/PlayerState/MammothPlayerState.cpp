@@ -59,7 +59,7 @@ float AMammothPlayerState::GetPlayerHealth()
 	APlayerCharacter_cpp* PlayerCharacter = Cast <APlayerCharacter_cpp>(GetPawn());
 	if (!PlayerCharacter)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("failed to get character"));
+		//UE_LOG(LogTemp, Warning, TEXT("failed to get character"));
 		// PlayerPawn is invalid
 		return 0.0f;
 	}

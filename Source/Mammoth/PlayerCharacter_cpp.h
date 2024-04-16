@@ -54,25 +54,26 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StopSprint();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	float MaxHealth = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, BlueprintReadOnly, Category = "Player Stats")
+	//UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, BlueprintReadOnly, Category = "Player Stats")
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
 	float Health = 100.f;
 
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
 
 	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE float GetStamina() const { return Stamina; }
+	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
 
 	UFUNCTION()
 	void OnRep_UpdatePlayersReady();
 
 	void SetOverlappingObject(AUseableItems* OverlappedObject);
-
-	void OnMatchStateSet(FName State);
-
-	void HandleCooldown();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "My Character")
 	bool bIsSprinting = false;
@@ -103,6 +104,7 @@ public:
 protected:
 
 	void UseKeyPressed();
+	void PollInit();
 	
 
 private:
@@ -124,14 +126,6 @@ private:
 
 	UPROPERTY()
 	class UMissionBoard* MissionBoard;
-
-	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
-	FName MatchState;
-
-	
-
-	UFUNCTION()
-	void OnRep_MatchState();
 
 	UPROPERTY()
 	class ALobbyGameMode* LobbyGameMode;
@@ -168,6 +162,6 @@ private:
 	UFUNCTION()
 	void OnRep_Stamina();
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	class AMammothPlayerController* MammothPlayerController;
 };
