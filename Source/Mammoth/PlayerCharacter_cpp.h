@@ -97,6 +97,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateHUDAmmo(int32 Ammo);
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateHUDHealthBPCall(float NewHealth);
+
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
 

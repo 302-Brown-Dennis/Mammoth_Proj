@@ -43,45 +43,29 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("Found SubSystem %s"), *OnlineSubsystem->GetSubsystemName().ToString()));
 		}*/
 	}
-
-	
 	
 	// Net update frequency
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 
-
 	// Commented out on 4/9/24
 	//bReplicates = true;
 	//bAlwaysRelevant = true;
-
 
 	// Testing widget for displaying players role on server
 	// Can be toggled in WPB_OverHeadWidget Blueprint
 	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
 	OverHeadWidget->SetupAttachment(RootComponent);
-
 }
 
 // Called when the game starts or when spawned
 void APlayerCharacter_cpp::BeginPlay()
 {
 	Super::BeginPlay();
-	/*UWorld* World = GetWorld();
-	if (World)
-	{
-		APlayerController* PlayerController = World->GetFirstPlayerController();
-		if (PlayerController)
-		{
-			FInputModeGameOnly InputModeData;
-			PlayerController->SetInputMode(InputModeData);
-			PlayerController->SetShowMouseCursor(false);
-
-		}
-	}
-	;*/
+	
 	//UpdateHUDHealth();
 	//UpdateHUDStamina();
+
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &APlayerCharacter_cpp::ReceiveDamage);
@@ -96,9 +80,6 @@ void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(APlayerCharacter_cpp, NumOfPlayersReady);
     DOREPLIFETIME(APlayerCharacter_cpp, Health);
 	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
-	//UE_LOG(LogTemp, Warning, TEXT("Character begin play!"));
-
-	//for player health and stamina
 	
 }
 
@@ -116,9 +97,7 @@ void APlayerCharacter_cpp::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &APlayerCharacter_cpp::UseKeyPressed);
-	// Sprint functionality 
-	//PlayerInputComponent->BindAction("SprintButton", IE_Pressed, this, &APlayerCharacter_cpp::StartSprint);
-	//PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter_cpp::StopSprint);
+	
 }
 
 
@@ -279,6 +258,15 @@ void APlayerCharacter_cpp::UpdateHUDHealth() {
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Updating Health!")));
 		}
+		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
+}
+void APlayerCharacter_cpp::UpdateHUDHealthBPCall(float NewHealth)
+{
+	Health = NewHealth;
+	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
+	if (MammothPlayerController) 
+	{
 		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
 	}
 }

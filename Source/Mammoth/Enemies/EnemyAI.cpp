@@ -235,7 +235,7 @@ void AEnemyAI::PlayDeathMontage()
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && CombatMontage)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("In PlayDeathMontage called from on rep health"));
+		//UE_LOG(LogTemp, Warning, TEXT("In PlayDeathMontage called from on rep health"));
 		AnimInstance->Montage_Play(CombatMontage);
 		AnimInstance->Montage_JumpToSection(FName("Death"), CombatMontage);
 	}
@@ -375,7 +375,7 @@ void AEnemyAI::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageTy
 		EventOnEnemyDeath();
 		if (HasAuthority())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Has authority! calling server die!"));
+			//UE_LOG(LogTemp, Warning, TEXT("Has authority! calling server die!"));
 			ServerOnDeathMontage();
 		}
 		
@@ -441,7 +441,7 @@ void AEnemyAI::MulticastOnDeathMontage_Implementation()
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && CombatMontage)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("playing death"));
+		//UE_LOG(LogTemp, Warning, TEXT("playing death"));
 		AnimInstance->Montage_Play(CombatMontage);
 		AnimInstance->Montage_JumpToSection(FName("Death"), CombatMontage);
 	}
@@ -458,7 +458,7 @@ void AEnemyAI::MulticastOnDeathMontage_Implementation()
 void AEnemyAI::OnDeath()
 {
 
-	UE_LOG(LogTemp, Warning, TEXT("IN ON DEATH"));
+	//UE_LOG(LogTemp, Warning, TEXT("IN ON DEATH"));
 	//GetMesh()->bPauseAnims = true;
 	//GetMesh()->bNoSkeletonUpdate = true;
 	
@@ -470,6 +470,6 @@ bool AEnemyAI::IsAlive()
 }
 void AEnemyAI::DestroyEnemy()
 {
-	UE_LOG(LogTemp, Warning, TEXT("INN DEstroying enemy!!!"));
+	//UE_LOG(LogTemp, Warning, TEXT("INN DEstroying enemy!!!"));
 	Destroy();
 }
