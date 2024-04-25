@@ -25,8 +25,6 @@ APlayerCharacter_cpp::APlayerCharacter_cpp()
 	
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
-	NumOfPlayersReady = 0;
 
 	bIsSprinting = false;
 	MaxStamina = 100.f;
@@ -77,7 +75,6 @@ void APlayerCharacter_cpp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(APlayerCharacter_cpp, UseableItems, COND_OwnerOnly);
-	DOREPLIFETIME(APlayerCharacter_cpp, NumOfPlayersReady);
     DOREPLIFETIME(APlayerCharacter_cpp, Health);
 	DOREPLIFETIME(APlayerCharacter_cpp, Stamina);
 	
@@ -109,19 +106,6 @@ void APlayerCharacter_cpp::PostInitializeComponents()
 		//Missions->PlayerCharacter = this;
 	}
 }
-
-void APlayerCharacter_cpp::PlayerHasReadyUp()
-{
-	
-	
-}
-void APlayerCharacter_cpp::GetReadyAmount_Implementation()
-{
-	int32 curval = NumOfPlayersReady;
-	UE_LOG(LogTemp, Warning, TEXT("NUM PLAYERS READY CALLED FROM SERVER READY AMOUNT: %d"), NumOfPlayersReady);
-	UE_LOG(LogTemp, Warning, TEXT("CUR VALUE CALLED FROM SERVER READY AMOUNT: %d"), curval);
-}
-
 
 void APlayerCharacter_cpp::SetOverlappingObject(AUseableItems* OverlappedObject)
 {
@@ -191,55 +175,6 @@ void APlayerCharacter_cpp::PollInit()
 			UpdateHUDStamina();
 		}
 	}
-}
-
-void APlayerCharacter_cpp::Server_SetPlayerIsReady_Implementation()
-{
-	//NumOfPlayersReady++;
-	//Multicast_UpdatePlayersReady(NumOfPlayersReady);
-	// Get Lobby Game Mode
-	LobbyGameMode = Cast<ALobbyGameMode>(GetWorld()->GetAuthGameMode());
-	if (LobbyGameMode)
-	{
-		//NumOfPlayersReady++;
-		//UE_LOG(LogTemp, Warning, TEXT("NUM PLAYERS READY IS: %d"), NumOfPlayersReady);
-		// Make sure we have authority i.e. we are the server
-		if (HasAuthority())
-		{
-			//Multicast_UpdatePlayersReady();
-			UE_LOG(LogTemp, Warning, TEXT("Server Set play Is ready, calling lobby check players ready, num players ready: %d"), NumOfPlayersReady);
-			//UE_LOG(LogTemp, Warning, TEXT("CALLING CHECK PLAYERS"));
-			// Server checks all player states
-			LobbyGameMode->CheckPlayersReady();
-		}					
-	}
-}
-void APlayerCharacter_cpp::OnRep_UpdatePlayersReady()
-{
-	UE_LOG(LogTemp, Warning, TEXT("BEFORE MULTICAST PLAYERS READY IS: %d"), NumOfPlayersReady);
-	Multicast_UpdatePlayersReady();
-	UE_LOG(LogTemp, Warning, TEXT("AFTERRRR MULTICAST PLAYERS READY IS: %d"), NumOfPlayersReady);
-	
-}
-void APlayerCharacter_cpp::Multicast_UpdatePlayersReady_Implementation()
-{
-	UE_LOG(LogTemp, Warning, TEXT("MULTICAST"));
-	NumOfPlayersReady++;
-	UE_LOG(LogTemp, Warning, TEXT("UYPDATING PLAYERS READY IS: %d"), NumOfPlayersReady);
-}
-void APlayerCharacter_cpp::Server_UpdatePlayersReady_Implementation()
-{
-	
-		UE_LOG(LogTemp, Warning, TEXT("IN SERVER FUNC AND HAS AUTHORITY!!!!!"));
-		//NumOfPlayersReady++;
-		OnRep_UpdatePlayersReady();
-	
-	//Multicast_UpdatePlayersReady();
-}
-void APlayerCharacter_cpp::UpdatePlayerReady()
-{
-	NumOfPlayersReady++;
-	Server_UpdatePlayersReady();
 }
 
 //Player Health Rep Function

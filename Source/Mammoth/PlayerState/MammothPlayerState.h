@@ -19,15 +19,6 @@ public:
 
 	AMammothPlayerState();
 
-	
-	void SetPlayerIsReady();
-	bool GetPlayerIsReady() const;
-
-	UFUNCTION(Server, Reliable)
-	void Server_SetPlayerRead(bool bNewReadyState);
-
-	bool bPlayerReady = false;
-
 	UFUNCTION(BlueprintCallable, Category = PlayersHealth)
 	float GetPlayerHealth();
 

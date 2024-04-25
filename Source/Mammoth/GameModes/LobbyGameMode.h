@@ -24,14 +24,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelName")
 	FString LevelName;
 	
-	void CheckPlayersReady();
-	UPROPERTY(EditDefaultsOnly)
 	float CooldownTime = 30.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float WarmUpTime = 5.f;
 
 	float LevelStartingTime = 0.f;
+
+	UFUNCTION(BlueprintCallable)
+	void BPCallServerTravel(FString LevelPath);
 
 private:
 

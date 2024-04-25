@@ -27,11 +27,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Mammoth|GameState")
 	int32 GetNumPlayers() const;
 
-	UPROPERTY(Replicated)
-	TArray<class AMammothPlayerState*> MissionReadyPlayers;
-
 private:
 	int32 NumOfPlayersReady;
-
-	void GetRead();
 };

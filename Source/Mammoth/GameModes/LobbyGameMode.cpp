@@ -65,38 +65,13 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 }
 
-// Server uses this to check all player ready state
-void ALobbyGameMode::CheckPlayersReady()
+void ALobbyGameMode::BPCallServerTravel(FString LevelPath)
 {
-	AMammothGameState* MammothGameState = GetGameState<AMammothGameState>();
-
-	for (APlayerState* PlayerState : MammothGameState->GetPlayerArray())
+	UWorld* World = GetWorld();
+	if (World)
 	{
-		AMammothPlayerState* MammothGamePlayerState = Cast<AMammothPlayerState>(PlayerState);
-		if (MammothGamePlayerState )
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("IN LOBBY GAME MODE CHECKING READIES!!!: %s"), MammothGamePlayerState->GetPlayerIsReady() ? TEXT("true") : TEXT("false"));
-			if (!MammothGamePlayerState->GetPlayerIsReady())
-			{
-				//UE_LOG(LogTemp, Warning, TEXT("FAILED TO GET PLAYER READY!!!"));
-				return;
-				
-			}
-		
-			//UE_LOG(LogTemp, Warning, TEXT("Player %s is mission ready!"), *MammothGamePlayerState->GetPlayerName());
-			//UE_LOG(LogTemp, Warning, TEXT("My Boolean Value: %s"), MammothGamePlayerState->GetPlayerIsReady() ? TEXT("true") : TEXT("false"));
-		}
-
+		World->ServerTravel(LevelPath);
 	}
-
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT("All players ready! Starting mission")));
-	}
-	CallServerTravel();
-	
-	
-	
 }
 
 void ALobbyGameMode::CallServerTravel()

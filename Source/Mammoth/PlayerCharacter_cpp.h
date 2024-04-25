@@ -18,8 +18,6 @@ public:
 	// Sets default values for this character's properties
 	APlayerCharacter_cpp();
 
-	//FPlayerAcceptanceDelegate OnPlayerReady;
-
 	//Daniel M Added 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -38,15 +36,6 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	UFUNCTION(BlueprintCallable)
-	void PlayerHasReadyUp();
-
-	UFUNCTION(Server, Reliable)
-	void GetReadyAmount();
-
-	UPROPERTY(ReplicatedUsing = OnRep_UpdatePlayersReady)
-	int32 NumOfPlayersReady;
 
 	UFUNCTION(BlueprintCallable)
 	void StartSprint();
@@ -70,9 +59,6 @@ public:
 	FORCEINLINE float GetStamina() const { return Stamina; }
 	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
 
-	UFUNCTION()
-	void OnRep_UpdatePlayersReady();
-
 	void SetOverlappingObject(AUseableItems* OverlappedObject);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "My Character")
@@ -83,17 +69,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "My Character")
 	void OnDownBPEvent();
-
-	UFUNCTION(Server, Reliable)
-	void Server_SetPlayerIsReady();
-
-	UFUNCTION(Server, Reliable)
-	void Server_UpdatePlayersReady();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_UpdatePlayersReady();
-
-	void UpdatePlayerReady();
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateHUDAmmo(int32 Ammo);
