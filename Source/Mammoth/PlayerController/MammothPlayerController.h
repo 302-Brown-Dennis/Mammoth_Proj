@@ -27,6 +27,8 @@ public:
 	void InitHUD();
 	UFUNCTION(BlueprintCallable)
 	void ClearOverlay();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UCharacterOverlay* CharacterOverlayRef;
 protected:
 	virtual void BeginPlay() override;
 	void PollInit();
@@ -43,8 +45,7 @@ private:
 	UFUNCTION()
 	void OnRep_MatchState();
 
-	UPROPERTY(VisibleAnywhere)
-	class UCharacterOverlay* CharacterOverlayRef;
+	
 	bool bInitHealth = false;
 	bool bInitStamina = false;
 	bool bInitAmmo = false;

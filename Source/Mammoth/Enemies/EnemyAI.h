@@ -44,11 +44,11 @@ public:
 	* Health
 	* 
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy Stats")
-	float EnemyMaxHealth = 5.0f;
-
-	UPROPERTY(ReplicatedUsing = OnRep_EnemyHealth, VisibleAnywhere, Category = "Enemy Stats")
-	float EnemyHealth = EnemyMaxHealth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float EnemyMaxHealth = 100.0f;
+	/** This is the replicated variable! */
+	UPROPERTY(ReplicatedUsing = OnRep_EnemyHealth, EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float EnemyHealth = 100.0f;
 
 	UFUNCTION()
 	void OnRep_EnemyHealth(float LastHealth);
@@ -64,7 +64,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	class UBoxComponent* AttackHitBoxCollison;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	float EnemyDamage;
 
 	FTimerHandle DeathTimer;

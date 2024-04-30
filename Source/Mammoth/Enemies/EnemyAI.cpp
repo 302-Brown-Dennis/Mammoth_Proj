@@ -82,7 +82,7 @@ void AEnemyAI::BeginPlay()
 	Super::BeginPlay();
 	// Get Enemy Ai controller
 	AIController = Cast<AAIController>(GetController());
-	EnemyHealth = EnemyMaxHealth;
+	
 	bWasAttacked = false;
 	bWasSpawned = false;
 	//class AController* TestController = GetController();

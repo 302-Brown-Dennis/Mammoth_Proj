@@ -189,10 +189,10 @@ void APlayerCharacter_cpp::OnRep_Health(float LastHealth)
 void APlayerCharacter_cpp::UpdateHUDHealth() {
 	MammothPlayerController = MammothPlayerController == nullptr ? Cast<AMammothPlayerController>(Controller) : MammothPlayerController;
 	if (MammothPlayerController) {
-		if (GEngine)
+		/*if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Updating Health!")));
-		}
+		}*/
 		MammothPlayerController->SetHUDHealth(Health, MaxHealth);
 	}
 }

@@ -42,13 +42,15 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void StopSprint();
-
+	
 	//UPROPERTY(EditAnywhere, Category = "Player Stats")
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
 	float MaxHealth = 100.f;
 
 	//UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
-	UPROPERTY(ReplicatedUsing = OnRep_Health, EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
+
+	/** This is the replicated variable! */
+	UPROPERTY(ReplicatedUsing = OnRep_Health, EditAnywhere, BlueprintReadWrite, Category = "Health")
 	float Health = 100.f;
 
 	UFUNCTION()
@@ -61,13 +63,13 @@ public:
 
 	void SetOverlappingObject(AUseableItems* OverlappedObject);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "My Character")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint")
 	bool bIsSprinting = false;
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "My Character")
+	UFUNCTION(BlueprintImplementableEvent, Category = "Sprint")
 	void OnSprintStateChangeBPEvent(bool bNewValue);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "My Character")
+	UFUNCTION(BlueprintImplementableEvent, Category = "Sprint")
 	void OnDownBPEvent();
 
 	UFUNCTION(BlueprintCallable)
@@ -75,6 +77,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateHUDHealthBPCall(float NewHealth);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WidgetReferences")
+	TSubclassOf<class UUserWidget> MissionBoardWidget;
 
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
@@ -103,9 +108,6 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UMissionComponents* Missions;
 
-	UPROPERTY(EditAnywhere, Category = "HUD")
-	TSubclassOf<class UUserWidget> MissionBoardWidget;
-
 	UPROPERTY()
 	class UMissionBoard* MissionBoard;
 
@@ -123,17 +125,18 @@ private:
 	void UpdateHUDHealth();
 	
 
-	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	UPROPERTY(EditAnywhere, Category = "Sprint")
 	float MaxStamina = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Stamina, VisibleAnywhere, Category = "Player Stats")
+	/** This is the replicated variable! */
+	UPROPERTY(ReplicatedUsing = OnRep_Stamina, VisibleAnywhere, Category = "Sprint")
 	float Stamina = 100.f;
 
 	// More stuff for Stamina
-	UPROPERTY(EditAnywhere, Category = "Stamina")
+	UPROPERTY(EditAnywhere, Category = "Sprint")
 	float StaminaRegenRate = 10.f;
 
-	UPROPERTY(EditAnywhere, Category = "Stamina")
+	UPROPERTY(EditAnywhere, Category = "Sprint")
 	float StaminaDrainRate = 15.f;
 
 	void DrainStamina();
