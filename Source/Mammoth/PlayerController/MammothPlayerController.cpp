@@ -45,20 +45,20 @@ void AMammothPlayerController::InitHUD()
 			SetHUDStamina(PlayerCharacter->GetStamina(), PlayerCharacter->GetMaxStamina());
 			SetHUDAmmo(30);
 		}
-		if (PlayerCharacter == nullptr)
+		/*if (PlayerCharacter == nullptr)
 		{
 			UE_LOG(LogTemp, Error, TEXT("HUD was initialized, failed to get Player Character."));
-		}
+		}*/
 	
 	}
-	else
+	/*else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Feel through InitHUD."));
 		if (MammothHUD) { UE_LOG(LogTemp, Error, TEXT("Feel through InitHUD, HUD was valid.")); }
 		else if (MammothHUD == nullptr) { UE_LOG(LogTemp, Error, TEXT("Feel through InitHUD, HUD was invalid.")); }
 		if (PlayerCharacter) { UE_LOG(LogTemp, Error, TEXT("Feel through InitHUD, Player Character was valid.")); }
 		else if (PlayerCharacter == nullptr) { UE_LOG(LogTemp, Error, TEXT("Feel through InitHUD, Player Character was invalid.")); }
-	}
+	}*/
 }
 void AMammothPlayerController::ClearOverlay()
 {
