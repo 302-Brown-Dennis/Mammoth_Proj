@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Default level game mode
+// Author: Dennis Brown
 
 
 #include "LevelsGameMode.h"
@@ -6,6 +7,7 @@
 #include "GameFramework/PlayerState.h"
 #include "Mammoth/PlayerCharacter_cpp.h"
 #include "GameFramework/PlayerController.h"
+#include "Mammoth/PlayerController/MammothPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 namespace MatchState
@@ -15,7 +17,13 @@ namespace MatchState
 
 ALevelsGameMode::ALevelsGameMode()
 {
-	bDelayedStart = false;
+	PlayerControllerClass = AMammothPlayerController::StaticClass();
+	bDelayedStart = true;
+}
+void ALevelsGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
 }
 void ALevelsGameMode::BeginPlay()
 {
@@ -29,7 +37,8 @@ void ALevelsGameMode::Tick(float DeltaTime)
 
 	if (MatchState == MatchState::WaitingToStart)
 	{
-		CountdownTime = GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		CountdownTime = WarmUpTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		//CountdownTime = LevelStartingTime - GetWorld()->GetTimeSeconds();
 		if (CountdownTime <= 0.f)
 		{
 			StartMatch();
@@ -42,10 +51,10 @@ void ALevelsGameMode::OnMatchStateSet()
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
-		APlayerCharacter_cpp* PlayerCharacter = Cast<APlayerCharacter_cpp>(*It);
-		if (PlayerCharacter)
+		AMammothPlayerController* MammothPlayerController = Cast<AMammothPlayerController>(*It);
+		if (MammothPlayerController)
 		{
-			PlayerCharacter->OnMatchStateSet(MatchState);
+			MammothPlayerController->OnMatchStateSet(MatchState);
 		}
 	}
 	
@@ -53,6 +62,15 @@ void ALevelsGameMode::OnMatchStateSet()
 void ALevelsGameMode::Server_GetServerTime_Implementation()
 {
 	FDateTime ServerTime = FDateTime::Now();
+}
+
+void ALevelsGameMode::LobbyServerTravel()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->ServerTravel(FString("/Game/Levels/") + LobbyName + ("?listen"));
+	}
 }
 
 

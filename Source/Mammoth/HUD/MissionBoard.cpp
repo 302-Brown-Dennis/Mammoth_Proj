@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Class for handling starting missions
+// Author: Dennis Brown
 
 
 #include "MissionBoard.h"
@@ -30,23 +31,6 @@ void UMissionBoard::MenuSetup()
 	{
 		CloseButton->OnClicked.AddDynamic(this, &UMissionBoard::CloseButtonClicked);
 	}
-	if (StartMissionButton && !StartMissionButton->OnClicked.IsBound())
-	{
-		StartMissionButton->OnClicked.AddDynamic(this, &UMissionBoard::StartMissionButtonClicked);
-	}
-}
-bool UMissionBoard::Initialize()
-{
-	if (!Super::Initialize())
-	{
-		return false;
-	}
-
-	ReadyBox1->SetVisibility(ESlateVisibility::Hidden);
-	ReadyBox2->SetVisibility(ESlateVisibility::Hidden);
-	ReadyBox3->SetVisibility(ESlateVisibility::Hidden);
-	ReadyBox4->SetVisibility(ESlateVisibility::Hidden);
-	return true;
 }
 void UMissionBoard::MenuTearDown()
 {
@@ -67,10 +51,7 @@ void UMissionBoard::MenuTearDown()
 	{
 		CloseButton->OnClicked.RemoveDynamic(this, &UMissionBoard::CloseButtonClicked);
 	}
-	if (StartMissionButton && StartMissionButton->OnClicked.IsBound())
-	{
-		StartMissionButton->OnClicked.RemoveDynamic(this, &UMissionBoard::StartMissionButtonClicked);
-	}
+	
 }
 
 
@@ -80,35 +61,3 @@ void UMissionBoard::CloseButtonClicked()
 	MenuTearDown();
 }
 
-void UMissionBoard::StartMissionButtonClicked()
-{
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		APlayerController* PlayerController = World->GetFirstPlayerController();
-		if (PlayerController)
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("Found Player Controller!!"));
-			AMammothPlayerState* MammothPlayerState = Cast<AMammothPlayerState>(PlayerController->PlayerState);
-			if (MammothPlayerState)
-			{
-				ReadyBox1->SetVisibility(ESlateVisibility::Visible);
-				ReadyBox2->SetVisibility(ESlateVisibility::Visible);
-				ReadyBox3->SetVisibility(ESlateVisibility::Visible);
-				ReadyBox4->SetVisibility(ESlateVisibility::Visible);
-
-				ReadyBox1->SetIsChecked(true);
-
-				//UE_LOG(LogTemp, Warning, TEXT("Found player state!!!"));
-				// Set Player ready up value to true
-				MammothPlayerState->SetPlayerIsReady();
-			}
-			
-			
-		}
-	}
-	
-	bStartMissionWasClicked = true;
-	StartMissionButton->SetIsEnabled(false);
-	
-}

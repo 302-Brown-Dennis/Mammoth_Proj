@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Used for items in game
+// Author: Cristian Ruelas
 
 
 #include "IStruct.h"

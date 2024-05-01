@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Each players state
+// Author: Dennis Brown
 
 #pragma once
 
@@ -18,19 +19,14 @@ public:
 
 	AMammothPlayerState();
 
-	
-	void SetPlayerIsReady();
-	bool GetPlayerIsReady() const;
-
-	UFUNCTION(Server, Reliable)
-	void Server_SetPlayerRead(bool bNewReadyState);
-
-	bool bPlayerReady = false;
+	UFUNCTION(BlueprintCallable, Category = PlayersHealth)
+	float GetPlayerHealth();
 
 private:
 	UPROPERTY()
 	class APlayerCharacter_cpp* Character;
 
-	
+	UPROPERTY()
+	class AMammothPlayerController* MammothPlayerController;
 	
 };

@@ -1,10 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Based on Stephen Ulibarri Udemy course https://www.udemy.com/course/unreal-engine-5-cpp-multiplayer-shooter/
+// Modified by: Dennis Brown
 
 #include "MultiplayerSessionSubsystem.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
 
+//DEFINE_LOG_CATEGORY(LogMultiplayerSystem);
 
 UMultiplayerSessionSubsystem::UMultiplayerSessionSubsystem():
 	// Bind delegates to callbacks
@@ -160,7 +161,6 @@ void UMultiplayerSessionSubsystem::OnFindSessionComplete(bool bWasSuccessful)
 		MultiplayerOnFindSessionComplete.Broadcast(TArray<FOnlineSessionSearchResult>(), false);
 		return;
 	}
-
 	MultiplayerOnFindSessionComplete.Broadcast(LastSessionSearch->SearchResults, bWasSuccessful);
 
 }
@@ -173,7 +173,6 @@ void UMultiplayerSessionSubsystem::OnJoinSessionComplete(FName SessionName, EOnJ
 		SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(FindSessionsCompleteDelegateHandle);
 		
 	}
-
 	MultiplayerOnJoinSessionComplete.Broadcast(Result);
 
 }

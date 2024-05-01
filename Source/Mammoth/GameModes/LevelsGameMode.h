@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Default level game mode
+// Author: Dennis Brown
 
 #pragma once
 
@@ -20,12 +21,22 @@ public:
 	ALevelsGameMode();
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 	UFUNCTION(Server, Reliable)
 	void Server_GetServerTime();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "mServer")
+	FString LobbyName;
+
+	UFUNCTION(BlueprintCallable)
+	void LobbyServerTravel();
+
 	UPROPERTY(EditDefaultsOnly)
 	float CooldownTime = 30.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float WarmUpTime = 5.f;
 
 	float LevelStartingTime = 0.f;
 

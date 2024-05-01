@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Class for returning to main menu
 
 #pragma once
 

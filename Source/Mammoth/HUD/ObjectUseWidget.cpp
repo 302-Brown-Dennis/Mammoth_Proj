@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Class for display text above items
+// Author: Dennis Brown
 
 
 #include "ObjectUseWidget.h"

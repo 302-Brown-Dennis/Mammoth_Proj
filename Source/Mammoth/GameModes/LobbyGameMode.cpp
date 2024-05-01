@@ -1,5 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Based on Stephen Ulibarri Udemy course https://www.udemy.com/course/unreal-engine-5-cpp-multiplayer-shooter/
+// Modified by: Dennis Brown
 
 #include "LobbyGameMode.h"
 #include "GameFramework/GameStateBase.h"
@@ -11,6 +11,14 @@
 #include "MultiplayerSessionSubsystem.h"
 #include "Net/UnrealNetwork.h"
 
+ALobbyGameMode::ALobbyGameMode()
+{
+
+}
+void ALobbyGameMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
 
@@ -47,29 +55,13 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 }
 
-// Server uses this to check all player ready state
-void ALobbyGameMode::CheckPlayersReady()
+void ALobbyGameMode::BPCallServerTravel(FString LevelPath)
 {
-	AMammothGameState* MammothGameState = GetGameState<AMammothGameState>();
-
-	for (APlayerState* PlayerState : MammothGameState->GetPlayerArray())
+	UWorld* World = GetWorld();
+	if (World)
 	{
-		AMammothPlayerState* MammothGamePlayerState = Cast<AMammothPlayerState>(PlayerState);
-		if (MammothGamePlayerState )
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("IN LOBBY GAME MODE CHECKING READIES!!!: %s"), MammothGamePlayerState->GetPlayerIsReady() ? TEXT("true") : TEXT("false"));
-			if (!MammothGamePlayerState->GetPlayerIsReady())
-			{
-				//UE_LOG(LogTemp, Warning, TEXT("FAILED TO GET PLAYER READY!!!"));
-				return;
-			}
-			//UE_LOG(LogTemp, Warning, TEXT("Player %s is mission ready!"), *MammothGamePlayerState->GetPlayerName());
-			//UE_LOG(LogTemp, Warning, TEXT("My Boolean Value: %s"), MammothGamePlayerState->GetPlayerIsReady() ? TEXT("true") : TEXT("false"));
-		}
-
+		World->ServerTravel(LevelPath);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("All Players Ready!!!"));
-	//CallServerTravel();
 }
 
 void ALobbyGameMode::CallServerTravel()
@@ -77,7 +69,12 @@ void ALobbyGameMode::CallServerTravel()
 	UWorld* World = GetWorld();
 	if (World)
 	{
-		World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
+		//bUseSeamlessTravel = true;
+		//UE_LOG(LogTemp, Warning, TEXT("Level Name: %s"), *LevelName);
+		//UE_LOG(LogTemp, Warning, TEXT("/Game/Levels/%s"), *LevelName, TEXT("?listen"));
+
+		//World->ServerTravel(FString("/Game/Levels/Level_01?listen"));
+		World->ServerTravel(FString("/Game/Levels/") + LevelName + ("?listen"));
 	}
 }
 

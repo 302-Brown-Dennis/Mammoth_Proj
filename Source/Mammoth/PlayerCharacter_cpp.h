@@ -1,10 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Main player class
+// Author: All
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/OnlineSessionInterface.h"
+
 #include "PlayerCharacter_cpp.generated.h"
 
 UCLASS(Blueprintable, config=Game)
@@ -12,15 +14,23 @@ class MAMMOTH_API APlayerCharacter_cpp : public ACharacter
 {
 	GENERATED_BODY()
 
-public:	
-
+public:
 	// Sets default values for this character's properties
 	APlayerCharacter_cpp();
 
+	//Daniel M Added 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+
+public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void PostInitializeComponents() override;
 
@@ -28,45 +38,62 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintCallable)
-	void PlayerHasReadyUp();
+	void StartSprint();
 
-	UFUNCTION(Server, Reliable)
-	void GetReadyAmount();
+	UFUNCTION(BlueprintCallable)
+	void StopSprint();
+	
+	//UPROPERTY(EditAnywhere, Category = "Player Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float MaxHealth = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_UpdatePlayersReady)
-	int32 NumOfPlayersReady;
+	//UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+
+	/** This is the replicated variable! */
+	UPROPERTY(ReplicatedUsing = OnRep_Health, EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float Health = 100.f;
 
 	UFUNCTION()
-	void OnRep_UpdatePlayersReady();
+	void OnRep_Health(float LastHealth);
+
+	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE float GetStamina() const { return Stamina; }
+	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
 
 	void SetOverlappingObject(AUseableItems* OverlappedObject);
 
-	void OnMatchStateSet(FName State);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint")
+	bool bIsSprinting = false;
 
-	void HandleCooldown();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Sprint")
+	void OnSprintStateChangeBPEvent(bool bNewValue);
 
-	UFUNCTION(Server, Reliable)
-	void Server_SetPlayerIsReady();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Sprint")
+	void OnDownBPEvent();
 
-	UFUNCTION(Server, Reliable)
-	void Server_UpdatePlayersReady();
+	UFUNCTION(BlueprintCallable)
+	void UpdateHUDAmmo(int32 Ammo);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_UpdatePlayersReady();
+	UFUNCTION(BlueprintCallable)
+	void UpdateHUDHealthBPCall(float NewHealth);
 
-	void UpdatePlayerReady();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WidgetReferences")
+	TSubclassOf<class UUserWidget> MissionBoardWidget;
+
 	// Pointer to online session interface
 	IOnlineSessionPtr OnlineSessionInterface;
+
+	FTimerHandle StaminaDrainTimer;
+	FTimerHandle StaminaRegenTimer;
 
 // Protected controls for creating steam session
 protected:
 
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 	void UseKeyPressed();
+	void PollInit();
+	
 
-// Create delegate
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -81,19 +108,8 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UMissionComponents* Missions;
 
-	UPROPERTY(EditAnywhere, Category = "HUD")
-	TSubclassOf<class UUserWidget> MissionBoardWidget;
-
 	UPROPERTY()
 	class UMissionBoard* MissionBoard;
-
-	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
-	FName MatchState;
-
-	
-
-	UFUNCTION()
-	void OnRep_MatchState();
 
 	UPROPERTY()
 	class ALobbyGameMode* LobbyGameMode;
@@ -101,4 +117,36 @@ private:
 	UPROPERTY()
 	class AMammothPlayerState* MammothPlayerState;
 
+	/*
+	* Player Health and Stamina
+	*/
+
+	void UpdateHUDStamina();
+	void UpdateHUDHealth();
+	
+
+	UPROPERTY(EditAnywhere, Category = "Sprint")
+	float MaxStamina = 100.f;
+
+	/** This is the replicated variable! */
+	UPROPERTY(ReplicatedUsing = OnRep_Stamina, VisibleAnywhere, Category = "Sprint")
+	float Stamina = 100.f;
+
+	// More stuff for Stamina
+	UPROPERTY(EditAnywhere, Category = "Sprint")
+	float StaminaRegenRate = 10.f;
+
+	UPROPERTY(EditAnywhere, Category = "Sprint")
+	float StaminaDrainRate = 15.f;
+
+	void DrainStamina();
+	void RegenStamina();
+
+	void SetSprinting(bool bNewSprintState);
+
+	UFUNCTION()
+	void OnRep_Stamina();
+
+	UPROPERTY(VisibleAnywhere)
+	class AMammothPlayerController* MammothPlayerController;
 };

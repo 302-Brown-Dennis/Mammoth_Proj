@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Based on Stephen Ulibarri Udemy course https://www.udemy.com/course/unreal-engine-5-cpp-multiplayer-shooter/
+// Modified by: Dennis Brown
 
 #pragma once
 
@@ -22,6 +23,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ShowPlayerNetRole(APawn* InPawn);
+
+	// True to show Remote role, False for local
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bShowRemoteOrLocalRole = false;
+
+	// Show or hide roles
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bShowRoles = true;
 
 protected:
 	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;

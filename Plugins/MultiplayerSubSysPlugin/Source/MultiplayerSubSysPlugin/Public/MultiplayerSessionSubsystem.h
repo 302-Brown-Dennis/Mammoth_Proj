@@ -1,4 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Based on Stephen Ulibarri Udemy course https://www.udemy.com/course/unreal-engine-5-cpp-multiplayer-shooter/
+// Modified by: Dennis Brown
 
 #pragma once
 
@@ -7,6 +8,8 @@
 #include "Interfaces/OnlineSessionInterface.h"
 
 #include "MultiplayerSessionSubsystem.generated.h"
+
+//DECLARE_LOG_CATEGORY_EXTERN(LogMultiplayerSystem, Log, All);
 
 // Custom delegates for menu class to bind callbacks
 // Dynamic delegate can be seralized and saved or loaded from a blueprint called"Even Dispatcher"
