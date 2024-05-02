@@ -335,14 +335,7 @@ void AEnemyAI::SetWasSpawned()
 	bWasSpawned = true;
 	OnEnemySpawned(bWasSpawned);
 }
-void AEnemyAI::MulticastUpdateEnemyHealthBar_Implementation()
-{
-	float EnemyHealthPercent = EnemyHealth / EnemyMaxHealth;
 
-	//UE_LOG(LogTemp, Warning, TEXT("Enemy health percent is: %f"), EnemyHealthPercent);
-	EnemyHealthBarOverlayclass->UpdateEnemyHealthBar(EnemyHealthPercent);
-	
-}
 void AEnemyAI::UpdateEnemyHealthBar()
 {
 	float EnemyHealthPercent = EnemyHealth / EnemyMaxHealth;
