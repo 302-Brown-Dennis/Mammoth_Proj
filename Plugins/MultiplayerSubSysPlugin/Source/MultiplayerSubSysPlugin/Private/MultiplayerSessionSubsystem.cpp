@@ -65,7 +65,6 @@ void UMultiplayerSessionSubsystem::CreateSession(int32 NumPublicConnections, FSt
 	}
 
 }
-
 void UMultiplayerSessionSubsystem::FindSessions(int32 MaxSearchResults)
 {
 	if (!SessionInterface.IsValid())
@@ -90,7 +89,6 @@ void UMultiplayerSessionSubsystem::FindSessions(int32 MaxSearchResults)
 	}
 
 }
-
 void UMultiplayerSessionSubsystem::JoinSession(const FOnlineSessionSearchResult& SessionResult)
 {
 

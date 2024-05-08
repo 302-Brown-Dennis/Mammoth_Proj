@@ -158,8 +158,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void UpdateHealthBarVisibilty();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastUpdateEnemyHealthBar();
 
 	void UpdateEnemyHealthBar();
 

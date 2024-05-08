@@ -25,8 +25,5 @@ public:
 	class UProgressBar* StaminaBar;
 
 	UPROPERTY(meta = (BindWidget))
-	class UImage* WeaponIcon;
-
-	UPROPERTY(meta = (BindWidget))
 	UTextBlock* AmmoText;
 };
